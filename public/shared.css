@@ -1,0 +1,120 @@
+/**
+ * Professional CV Stylesheet
+ * Simple, clean styling for paragraph-based HTML from PDF conversion
+ */
+
+/* Import Geist Font */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap");
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  color: #2c3e50;
+  background: #ecf0f1;
+  padding: 30px 20px;
+}
+
+/* Content Container */
+.content {
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: white;
+  padding: 50px 60px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* All paragraphs - base styling */
+.content p {
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+/* Empty paragraphs */
+.content p:empty {
+  margin: 0;
+  padding: 0;
+}
+
+/* First 3 paragraphs - Header area (Name, Title, Contact) */
+.content p:nth-child(1) {
+  font-size: 32pt;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.content p:nth-child(2) {
+  font-size: 18pt;
+  font-weight: 500;
+  color: #34495e;
+  margin-bottom: 12px;
+}
+
+.content p:nth-child(3) {
+  font-size: 10pt;
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #1a1a2e;
+}
+
+/* Section headers - detect by all caps content */
+.content p {
+  font-size: 10.5pt;
+}
+
+/* Paragraphs with bullets */
+.content p {
+  text-align: justify;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white;
+    padding: 0;
+  }
+
+  .content {
+    max-width: 100%;
+    margin: 0;
+    padding: 40px 50px;
+    box-shadow: none;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .content {
+    padding: 30px 25px;
+  }
+
+  .content p:nth-child(1) {
+    font-size: 24pt;
+  }
+
+  .content p:nth-child(2) {
+    font-size: 14pt;
+  }
+}
