@@ -1,0 +1,29 @@
+# Sample job offer for testing
+# Frontend Developer Position
+
+We are looking for a Senior Frontend Developer to join our team.
+
+## Requirements
+
+- 5+ years of experience in frontend development
+- Expert knowledge of React, TypeScript, and modern JavaScript
+- Experience with state management (Redux, MobX)
+- Strong understanding of responsive design and CSS
+- Experience with testing frameworks (Jest, React Testing Library)
+- Excellent communication skills
+- Team player with leadership qualities
+
+## Responsibilities
+
+- Build and maintain high-quality web applications
+- Collaborate with designers and backend developers
+- Code reviews and mentoring junior developers
+- Participate in architectural decisions
+- Optimize application performance
+
+## Nice to Have
+
+- Experience with Next.js
+- Knowledge of GraphQL
+- CI/CD experience
+- Open source contributions
