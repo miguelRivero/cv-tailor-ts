@@ -1,6 +1,7 @@
 /**
  * Professional CV Stylesheet
- * Simple, clean styling for paragraph-based HTML from PDF conversion
+ * Using vertical rhythm with em units for consistent spacing
+ * Optimized for A4 page (210mm × 297mm)
  */
 
 /* Import Geist Font */
@@ -13,30 +14,42 @@
   box-sizing: border-box;
 }
 
+/* Base font size for vertical rhythm */
 body {
   font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
-  font-size: 11pt;
-  line-height: 1.7;
+  font-size: 10pt; /* Base size */
+  line-height: 1.4; /* Tighter for A4 fit */
   color: #2c3e50;
   background: #ecf0f1;
-  padding: 30px 20px;
+  padding: 1.5em 1em;
 }
 
-/* Content Container */
+/* Content Container - A4 optimized */
 .content {
   max-width: 210mm;
   min-height: 297mm;
   margin: 0 auto;
   background: white;
-  padding: 50px 60px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2.5em 3em; /* Reduced padding for more content space */
+  box-shadow: 0 0.2em 1em rgba(0, 0, 0, 0.1);
 }
 
-/* All paragraphs - base styling */
+/* All paragraphs - base styling with vertical rhythm */
 .content p {
-  margin-bottom: 12px;
-  line-height: 1.7;
+  margin-bottom: 0.6em; /* Reduced spacing */
+  line-height: 1.4;
+}
+
+/* Section titles - using em for rhythm */
+.title {
+  font-size: 1.2em; /* 12pt relative to 10pt base */
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em; /* Reduced from 8px */
 }
 
 /* Empty paragraphs */
@@ -45,52 +58,89 @@ body {
   padding: 0;
 }
 
-/* First 3 paragraphs - Header area (Name, Title, Contact) */
+/* Header - Name */
 .content p:nth-child(1) {
-  font-size: 32pt;
+  font-size: 2.8em; /* 28pt */
   font-weight: 700;
   color: #1a1a2e;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
+  margin-bottom: 0;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
+/* Header - Job Title */
 .content p:nth-child(2) {
-  font-size: 18pt;
+  font-size: 1.8em; /* 18pt */
   font-weight: 500;
   color: #34495e;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+  line-height: 1.2;
 }
 
+/* Header - Contact Info */
 .content p:nth-child(3) {
-  font-size: 10pt;
+  font-size: 1em; /* 10pt */
   color: #7f8c8d;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 3px solid #1a1a2e;
+  margin-bottom: 0;
+  padding-bottom: 1em;
+  border-bottom: 0.2em solid #1a1a2e;
+  line-height: 1.4;
 }
 
-/* Section headers - detect by all caps content */
-.content p {
-  font-size: 10.5pt;
+/* Competency items - inline display */
+.content p.competency-item {
+  display: block;
+  margin-bottom: 0.5em; /* Tighter spacing */
+  line-height: 1.4;
 }
 
-/* Paragraphs with bullets */
+.content p.competency-item strong {
+  display: inline;
+  margin: 0;
+}
+
+/* Experience header - company and date */
+.content p.experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5em;
+  margin-top: 0.8em; /* Space between companies */
+  font-size: 1.1em; /* 11pt */
+  line-height: 1.3;
+}
+
+.content p.experience-header .company-name {
+  font-weight: 600;
+}
+
+.content p.experience-header .job-date {
+  margin-left: auto;
+  padding-left: 1.5em;
+  white-space: nowrap;
+  font-size: 0.9em;
+  color: #7f8c8d;
+}
+
+/* Experience bullet points */
 .content p {
+  font-size: 1em; /* 10pt */
   text-align: justify;
 }
 
-/* Print Styles */
+/* Print Styles - Critical for A4 */
 @media print {
   body {
     background: white;
     padding: 0;
+    font-size: 10pt; /* Ensure consistent sizing */
   }
 
   .content {
     max-width: 100%;
     margin: 0;
-    padding: 40px 50px;
+    padding: 2em 2.5em; /* Optimized for print */
     box-shadow: none;
   }
 
@@ -98,23 +148,37 @@ body {
     size: A4;
     margin: 0;
   }
+
+  /* Prevent page breaks inside sections */
+  .title {
+    page-break-after: avoid;
+  }
+
+  .experience-header {
+    page-break-after: avoid;
+  }
+
+  .content p {
+    page-break-inside: avoid;
+  }
 }
 
-/* Responsive */
+/* Responsive for screen viewing */
 @media screen and (max-width: 768px) {
   body {
-    padding: 10px;
+    padding: 0.5em;
+    font-size: 9pt;
   }
 
   .content {
-    padding: 30px 25px;
+    padding: 2em 1.5em;
   }
 
   .content p:nth-child(1) {
-    font-size: 24pt;
+    font-size: 2.4em;
   }
 
   .content p:nth-child(2) {
-    font-size: 14pt;
+    font-size: 1.6em;
   }
 }
