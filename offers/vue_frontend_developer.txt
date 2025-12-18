@@ -1,0 +1,27 @@
+Vue Frontend Developer
+Hays - Greater Barcelona Metropolitan Area
+
+Job Description:
+We are looking for a Vue Frontend Developer to join a pharmaceutical company.
+
+Requirements:
+- Experience with Vue.js framework
+- Frontend development skills
+- Strong understanding of modern JavaScript
+- Experience with component-based architecture
+- Knowledge of HTML5, CSS3
+- Experience with responsive design
+- Git version control
+- Agile methodologies
+
+Responsibilities:
+- Develop and maintain frontend applications using Vue.js
+- Collaborate with backend developers and designers
+- Write clean, maintainable code
+- Participate in code reviews
+- Ensure application performance and quality
+
+Location: Greater Barcelona Metropolitan Area
+Company: Pharmaceutical sector
+
+Job URL: https://www.linkedin.com/jobs/view/4348427297
