@@ -33,12 +33,13 @@ export interface Config {
 }
 
 let cachedConfig: Config | null = null;
+let cachedConfigPath: string | null = null;
 
 /**
  * Load configuration from config.yaml
  */
 export function loadConfig(configPath: string = 'config.yaml'): Config {
-  if (cachedConfig) {
+  if (cachedConfig && cachedConfigPath === configPath) {
     return cachedConfig;
   }
 
@@ -62,9 +63,12 @@ export function loadConfig(configPath: string = 'config.yaml'): Config {
     }
 
     cachedConfig = config;
+    cachedConfigPath = configPath;
     return config;
   } catch (error) {
-    throw new Error(`Failed to load configuration: ${error}`);
+    throw new Error(`Failed to load configuration: ${configPath}`, {
+      cause: error,
+    });
   }
 }
 
@@ -73,4 +77,5 @@ export function loadConfig(configPath: string = 'config.yaml'): Config {
  */
 export function resetConfigCache(): void {
   cachedConfig = null;
+  cachedConfigPath = null;
 }
