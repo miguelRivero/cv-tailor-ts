@@ -8,6 +8,8 @@ import OpenAI from 'openai';
 import { loadConfig } from '../utils/config.js';
 import { Keywords } from '../extractors/extractKeywords.js';
 
+export type FrameworkMode = 'react' | 'vue' | 'agnostic';
+
 export interface AdaptationResult {
   html: string;
   summary: string;
@@ -19,30 +21,15 @@ export interface AdaptationResult {
 export async function adaptHTML(
   baseHtml: string,
   keywords: Keywords,
-  jobTitle: string = ''
+  jobTitle: string = '',
+  framework: FrameworkMode = 'agnostic'
 ): Promise<AdaptationResult> {
   const config = loadConfig();
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  // Check if React is required
-  const isReactRequired = checkIfReactRequired(keywords);
-
-  const reactInstruction = isReactRequired
-    ? `5. FRAMEWORK TRANSLATION (React/Vue):
-   - React is EXPLICITLY REQUIRED for this position
-   - If the candidate only has Vue experience:
-     Use this EXACT phrase: "While my primary experience is with Vue 3, the component-driven architecture I apply transfers seamlessly to React."
-   - Emphasize transferable concepts: components, hooks/composition, state management, reactive patterns
-   - Do NOT claim direct React experience if it doesn't exist
-`
-    : `5. FRAMEWORK REQUIREMENT:
-   - React is NOT required for this position
-   - DO NOT mention React, React-compatible concepts, or React translations
-   - Focus ONLY on the candidate's actual experience (Vue, TypeScript, etc.)
-   - Do NOT try to translate or map Vue skills to React
-`;
+  const reactInstruction = buildFrameworkInstruction(framework);
 
   const systemPrompt = `You are an expert CV rewriter specialized in tailoring resumes for specific job opportunities.
 
@@ -150,23 +137,38 @@ Remember:
       summary: responseData.summary || 'No summary available',
     };
   } catch (error) {
-    throw new Error(`Failed to adapt CV: ${error}`);
+    throw new Error('Failed to adapt CV', { cause: error });
   }
 }
 
 /**
- * Check if React is required based on keywords
+ * Build the framework-emphasis instruction block interpolated into the system
+ * prompt. Each mode produces distinct guidance.
  */
-function checkIfReactRequired(keywords: Keywords): boolean {
-  const allKeywords: string[] = [];
-
-  // Collect all keywords from various categories
-  for (const value of Object.values(keywords)) {
-    if (Array.isArray(value)) {
-      allKeywords.push(...value.map((k) => String(k).toLowerCase()));
-    }
+function buildFrameworkInstruction(framework: FrameworkMode): string {
+  switch (framework) {
+    case 'react':
+      return `5. FRAMEWORK EMPHASIS (React ramp-up):
+   - The candidate's primary and most extensive experience is with Vue, but they also know React.
+   - Convey confidently that their strong component-driven, framework experience lets them ramp up on React quickly in a professional setting.
+   - Draw an explicit parallel to how they previously transitioned from AngularJS to their current stack: they have done exactly this kind of framework switch before.
+   - Emphasize transferable concepts: components, hooks / composition API, state management, and reactive patterns.
+   - Do NOT fabricate deep or long-standing React experience; frame it as easy, low-risk ramp-up backed by real component-driven expertise.
+`;
+    case 'vue':
+      return `5. FRAMEWORK EMPHASIS (Vue focus):
+   - Emphasize and stress the candidate's Vue experience specifically as a core strength.
+   - Do NOT translate, map, or compare their skills to React.
+   - Do NOT mention React at all unless the term already appears in the base CV text.
+   - Keep the framing centered on their actual Vue expertise.
+`;
+    case 'agnostic':
+    default:
+      return `5. FRAMEWORK EMPHASIS (framework-agnostic):
+   - Be framework-skeptic and neutral: stress extensive experience with frontend frameworks in general.
+   - Do NOT tie the candidate's identity to any single framework.
+   - Avoid over-emphasizing React, Vue, or any one framework over the others.
+   - Highlight transferable, framework-independent engineering skills (architecture, state management, reactive UI patterns).
+`;
   }
-
-  // Check if any keyword contains "react"
-  return allKeywords.some((k) => k.includes('react'));
 }

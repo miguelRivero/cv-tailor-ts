@@ -5,9 +5,11 @@
  */
 
 import 'dotenv/config';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import * as cheerio from 'cheerio';
 import path from 'path';
+import slugify from 'slugify';
+import { loadConfig } from './utils/config.js';
 import { parseOfferFromUrl, parseOfferFromFile } from './parsers/parseOffer.js';
 import { parsePdfCV } from './parsers/parsePdf.js';
 import { extractKeywords } from './extractors/extractKeywords.js';
@@ -35,9 +37,12 @@ interface CliOptions {
   outputDir: string;
   noWatermarkCheck: boolean;
   verbose: boolean;
-  pdfInput: string; // Now has default value
+  pdfInput?: string; // Only set when explicitly provided
   htmlOnly: boolean; // Replaces pdfOutput and pdfOnly
+  framework: 'react' | 'vue' | 'agnostic';
 }
+
+const FRAMEWORK_MODES = ['react', 'vue', 'agnostic'] as const;
 
 async function main() {
   const program = new Command();
@@ -49,21 +54,60 @@ async function main() {
 
   // Input source (mutually exclusive)
   program
-    .option('--text <text>', 'Job offer text directly')
-    .option('--file <path>', 'Path to job offer text file')
-    .option('--url <url>', 'URL of job offer page')
+    .addOption(
+      new Option('--text <text>', 'Job offer text directly').conflicts([
+        'file',
+        'url',
+      ])
+    )
+    .addOption(
+      new Option('--file <path>', 'Path to job offer text file').conflicts([
+        'text',
+        'url',
+      ])
+    )
+    .addOption(
+      new Option('--url <url>', 'URL of job offer page').conflicts([
+        'text',
+        'file',
+      ])
+    )
     .option('--base <path>', 'Path to base CV HTML file (default: uses PDF)', 'original/MR_cv_base.html')
-    .option('--pdf-input <path>', 'Path to base CV PDF file', 'original/MR_cv_base.pdf')
+    .option('--pdf-input <path>', 'Path to base CV PDF file (defaults to the HTML base CV when omitted)')
     .option('--output-dir <dir>', 'Output directory', 'output')
     .option('--no-watermark-check', 'Skip watermark detection check')
     .option('-v, --verbose', 'Enable verbose output')
-    .option('--html-only', 'Generate only HTML output (no PDF attempt)');
+    .option('--html-only', 'Generate only HTML output (no PDF attempt)')
+    .option(
+      '--framework <mode>',
+      'Framework emphasis mode: react | vue | agnostic',
+      'agnostic'
+    );
 
   program.parse();
 
   const options = program.opts<CliOptions>();
 
   try {
+    // Validate framework mode
+    if (!FRAMEWORK_MODES.includes(options.framework)) {
+      console.error(
+        `❌ Error: Invalid --framework value "${options.framework}". Must be one of: ${FRAMEWORK_MODES.join(', ')}`
+      );
+      process.exit(1);
+    }
+
+    // Validate OpenAI API key early, before running the pipeline
+    if (!process.env.OPENAI_API_KEY) {
+      console.error(
+        '❌ Error: OPENAI_API_KEY is not set. Add it to your environment or .env file.'
+      );
+      process.exit(1);
+    }
+
+    // Load configuration (candidate name, model settings, etc.)
+    const config = loadConfig();
+
     // Validate input source
     if (!options.text && !options.file && !options.url) {
       console.error('❌ Error: Must provide --text, --file, or --url');
@@ -170,7 +214,8 @@ async function main() {
     const { html: adaptedHtml, summary: adaptationSummary } = await adaptHTML(
       baseHtml,
       keywords,
-      jobTitle
+      jobTitle,
+      options.framework
     );
 
     if (options.verbose) {
@@ -204,7 +249,7 @@ async function main() {
 
     // Update <title> tag
     if ($('title').length > 0) {
-      $('title').text(`Miguel Rivero López - ${formattedTitle}`);
+      $('title').text(`${config.candidate_name} - ${formattedTitle}`);
     }
 
     // Update <div class="title">
@@ -337,8 +382,12 @@ async function main() {
 
 
     // Step 8: Save adapted CV
-    const outputFilenameHtml = generateOutputFilename(jobTitle, 'Miguel-Rivero-Lopez', 'html');
-    const outputFilenamePdf = generateOutputFilename(jobTitle, 'Miguel-Rivero-Lopez', 'pdf');
+    const candidateSlug = slugify(config.candidate_name, {
+      strict: true,
+      remove: /[*+~.()'"!:@]/g,
+    });
+    const outputFilenameHtml = generateOutputFilename(jobTitle, candidateSlug, 'html');
+    const outputFilenamePdf = generateOutputFilename(jobTitle, candidateSlug, 'pdf');
     const outputPathHtml = path.join(options.outputDir, outputFilenameHtml);
     const outputPathPdf = path.join(options.outputDir, outputFilenamePdf);
 
@@ -383,9 +432,12 @@ async function main() {
 
     process.exit(0);
   } catch (error) {
-    console.error(`\n❌ Error: ${error}`);
-    if (options.verbose && error instanceof Error) {
-      console.error(error.stack);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`\n❌ Error: ${message}`);
+    // Log the actual error object so stack traces and causes survive.
+    console.error(error);
+    if (error instanceof Error && error.cause) {
+      console.error('Caused by:', error.cause);
     }
     process.exit(1);
   }

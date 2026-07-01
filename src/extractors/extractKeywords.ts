@@ -74,23 +74,13 @@ ${offerText}
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
       ],
+      response_format: { type: 'json_object' },
     });
 
-    let responseText = completion.choices[0].message.content || '{}';
-
-    // Clean up response if it contains markdown code blocks
-    if (responseText.startsWith('```')) {
-      const parts = responseText.split('```');
-      responseText = parts[1] || responseText;
-      if (responseText.startsWith('json')) {
-        responseText = responseText.substring(4);
-      }
-      responseText = responseText.trim();
-    }
-
+    const responseText = completion.choices[0].message.content || '{}';
     const keywords = JSON.parse(responseText) as Keywords;
     return keywords;
   } catch (error) {
-    throw new Error(`Failed to extract keywords: ${error}`);
+    throw new Error('Failed to extract keywords', { cause: error });
   }
 }

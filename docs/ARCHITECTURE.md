@@ -183,18 +183,23 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 - Clean up extra spaces
 - Remove empty paragraphs/list items
 
-### 6. Main Orchestrator (`run.py`)
+### 6. Main Orchestrator (`src/index.ts`)
 
 **Responsibility**: Coordinate the entire workflow
 
 **Command-Line Interface**:
 ```bash
-python src/run.py [--text TEXT | --file FILE | --url URL]
-                  [--base BASE_CV]
-                  [--output-dir DIR]
-                  [--no-watermark-check]
-                  [--verbose]
+npm start -- [--text TEXT | --file FILE | --url URL]
+             [--base BASE_CV] [--pdf-input PDF_CV]
+             [--framework react|vue|agnostic]
+             [--output-dir DIR]
+             [--html-only]
+             [--no-watermark-check]
+             [--verbose]
 ```
+
+`--text`, `--file`, and `--url` are mutually exclusive. `--framework` selects the
+framework-emphasis mode used when adapting the CV (default: `agnostic`).
 
 **Workflow**:
 1. Parse arguments
@@ -339,7 +344,7 @@ candidate_name: "Miguel-Rivero-Lopez"
 
 ### 1. Local CLI
 ```bash
-python src/run.py --file job.txt
+npm start -- --file job.txt
 ```
 
 ### 2. Antigravity Flow
