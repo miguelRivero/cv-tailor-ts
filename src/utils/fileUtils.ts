@@ -13,7 +13,7 @@ export async function loadBaseCV(cvPath: string): Promise<string> {
     const content = await fs.readFile(cvPath, 'utf-8');
     return content;
   } catch (error) {
-    throw new Error(`Base CV not found: ${cvPath}`);
+    throw new Error(`Base CV not found: ${cvPath}`, { cause: error });
   }
 }
 

@@ -31,7 +31,8 @@ watermark_keywords:
   - "automatically generated"
 
 # Naming Convention
-candidate_name: "Miguel-Rivero-Lopez"
+# Candidate display name. The output filename slug is derived from this value.
+candidate_name: "Miguel Rivero López"
 
 # PDF Configuration
 pdf:
