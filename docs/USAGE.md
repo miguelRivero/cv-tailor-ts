@@ -10,9 +10,10 @@ CV Tailor AI automates the process of adapting your CV for specific job opportun
 
 ```bash
 git clone <repo-url>
-cd cv-tailor-ai
-pip install -r requirements.txt
-export OPENAI_API_KEY='your-api-key'
+cd cv-tailor-ai-ts
+npm install
+echo "OPENAI_API_KEY=your-api-key-here" > .env
+npm run build
 ```
 
 ### 2. Prepare Your Base CV
@@ -30,20 +31,22 @@ original/
 #### From Text File
 
 ```bash
-python src/run.py --file offers/job_offer.txt
+npm start -- --file offers/job_offer.txt
 ```
 
 #### From URL
 
 ```bash
-python src/run.py --url "https://company.com/careers/frontend-developer"
+npm start -- --url "https://company.com/careers/frontend-developer"
 ```
 
 #### From Direct Text
 
 ```bash
-python src/run.py --text "Senior Frontend Developer needed with React experience..."
+npm start -- --text "Senior Frontend Developer needed with React experience..."
 ```
+
+> Note: `--text`, `--file`, and `--url` are mutually exclusive — provide exactly one.
 
 ### 4. Get Your Adapted CV
 
@@ -57,25 +60,41 @@ output/Miguel-Rivero-Lopez-{job-title}.html
 ### Custom Base CV
 
 ```bash
-python src/run.py --file offers/job.txt --base original/custom_cv.html
+npm start -- --file offers/job.txt --base original/custom_cv.html
+```
+
+### Framework Emphasis
+
+Use `--framework` to control how framework experience is presented
+(`react` | `vue` | `agnostic`, default: `agnostic`):
+
+```bash
+# Emphasize quick, confident ramp-up to React (primary experience is Vue)
+npm start -- --file offers/job.txt --framework react
+
+# Emphasize Vue experience specifically, without mapping to React
+npm start -- --file offers/job.txt --framework vue
+
+# Framework-agnostic: stress general frontend framework experience
+npm start -- --file offers/job.txt --framework agnostic
 ```
 
 ### Custom Output Directory
 
 ```bash
-python src/run.py --file offers/job.txt --output-dir my_cvs
+npm start -- --file offers/job.txt --output-dir my_cvs
 ```
 
 ### Verbose Mode
 
 ```bash
-python src/run.py --file offers/job.txt --verbose
+npm start -- --file offers/job.txt --verbose
 ```
 
 ### Skip Watermark Check
 
 ```bash
-python src/run.py --file offers/job.txt --no-watermark-check
+npm start -- --file offers/job.txt --no-watermark-check
 ```
 
 ## Understanding the Process
@@ -177,7 +196,7 @@ echo $OPENAI_API_KEY
 
 Re-run with verbose mode to see detections:
 ```bash
-python src/run.py --file offers/job.txt --verbose
+npm start -- --file offers/job.txt --verbose
 ```
 
 ### "Invalid JSON from keywords extraction"
