@@ -33,14 +33,15 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
                                       │
                                       ▼
                             ┌───────────────────┐
-                            │  Update HTML      │
-                            │  Title Tag        │
+                            │ Validate Structure│
+                            │  (shared.css)     │
                             └─────────┬─────────┘
                                       │
                                       ▼
                             ┌───────────────────┐
                             │  Save Adapted CV  │
-                            │  (Auto-named)     │
+                            │  + shared.css     │
+                            │  + PDF (optional) │
                             └───────────────────┘
 ```
 
@@ -99,7 +100,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 
 **LLM Configuration**:
 
-- Model: GPT-4-turbo-preview
+- Model: GPT-4o
 - Temperature: 0.7 (balance creativity and consistency)
 - Max tokens: 4000
 
@@ -161,7 +162,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 
 **LLM Configuration**:
 
-- Model: GPT-4-turbo-preview
+- Model: GPT-4o
 - Temperature: 0.7
 - Max tokens: 4000
 
@@ -261,8 +262,12 @@ Adapted HTML
 
 ```
 Clean HTML
-  └─> File: Miguel-Rivero-Lopez-{title}.html
+  ├─> output/Miguel-Rivero-Lopez-{title}.html  (stylesheet href: shared.css)
+  ├─> output/shared.css                        (copied from config.shared_css)
+  └─> output/Miguel-Rivero-Lopez-{title}.pdf   (CSS inlined for Puppeteer)
 ```
+
+PDF output is controlled by `--html-only` and `config.pdf.enabled`.
 
 ## Configuration Management
 
@@ -270,12 +275,13 @@ Clean HTML
 
 ```yaml
 # LLM Settings
-model: 'gpt-4-turbo-preview'
+model: 'gpt-4o'
 temperature: 0.7
 max_tokens: 4000
 
 # File Paths
-base_cv: 'original/mr-cv-edreams.html'
+base_cv: 'original/MR_cv_base.html'
+shared_css: 'original/shared.css'
 fallback_cv: 'original/MR_cv_athenailabs.html'
 output_dir: 'output'
 offers_dir: 'offers'
@@ -286,6 +292,12 @@ insert_keywords: true
 handle_framework_mismatch: true
 remove_ai_traces: true
 
+# PDF output (also skippable via --html-only)
+pdf:
+  enabled: true
+  format: 'A4'
+  print_background: true
+
 # Watermark Patterns
 watermark_keywords:
   - 'AI'
@@ -293,7 +305,7 @@ watermark_keywords:
   # ...
 
 # Naming
-candidate_name: 'Miguel-Rivero-Lopez'
+candidate_name: 'Miguel Rivero López'
 ```
 
 ## Error Handling Strategy
@@ -307,10 +319,12 @@ candidate_name: 'Miguel-Rivero-Lopez'
 
 ### Validation Layers
 
-1. **Input Validation**: Check file existence, URL format
-2. **JSON Validation**: Parse and validate LLM responses
-3. **HTML Validation**: Ensure well-formed output
-4. **Watermark Validation**: Detect residual traces
+1. **Input Validation**: Check file existence, URL format, OpenAI API key
+2. **Base CV Structure**: `validateBaseCvStructure()` — requires `.content` layout, rejects deprecated selectors
+3. **JSON Validation**: Parse and validate LLM responses
+4. **Post-Adaptation Structure**: Re-validate HTML after LLM rewrite and before save
+5. **HTML Normalization**: Force `href="shared.css"` in output
+6. **Watermark Validation**: Detect residual traces
 
 ## Security Considerations
 
@@ -456,7 +470,7 @@ GitHub Actions
 ### Planned Features
 
 1. **Multi-language support**: Spanish, French, German CVs
-2. **PDF generation**: Convert HTML to PDF automatically
+2. ~~**PDF generation**: Convert HTML to PDF automatically~~ ✅ Implemented (Puppeteer + inlined CSS)
 3. **Template system**: Multiple CV styles
 4. **Batch processing**: Adapt for multiple jobs simultaneously
 5. **Comparison view**: Side-by-side original vs adapted
