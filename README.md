@@ -128,6 +128,7 @@ Edit `config.yaml` to customize:
 model: 'gpt-4o'
 temperature: 0.7
 base_cv: 'original/MR_cv_base.html'
+shared_css: 'original/shared.css'
 fallback_cv: 'original/MR_cv_athenailabs.html'
 output_dir: 'output'
 
@@ -161,6 +162,7 @@ src/
   │   └── pdfGenerator.ts     # PDF generation (NEW)
   ├── utils/
   │   ├── config.ts           # Configuration loader
+  │   ├── cvStructure.ts      # Layout validation & output normalization
   │   └── fileUtils.ts        # File operations
   └── index.ts                # Main CLI orchestrator
 
@@ -180,6 +182,9 @@ npm run dev -- --file offers/sample_offer.txt
 
 # Build TypeScript
 npm run build
+
+# Lint, format check, and test (same as CI)
+npm run validate
 
 # Run tests
 npm test

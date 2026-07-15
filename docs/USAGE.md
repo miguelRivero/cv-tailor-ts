@@ -18,13 +18,24 @@ npm run build
 
 ### 2. Prepare Your Base CV
 
-Place your base CV HTML file in the `original/` directory:
+The base CV must use the `.content` paragraph layout styled by `shared.css`. Use `original/MR_cv_base.html` as the template:
 
 ```
 original/
-├── mr-cv-edreams.html      # Primary CV
-└── MR_cv_athenailabs.html  # Alternative CV for React-heavy roles
+├── MR_cv_base.html    # Primary CV (default in config.yaml)
+├── cv_template.html   # Reference layout
+└── shared.css         # Stylesheet (copied to output on each run)
 ```
+
+Required HTML patterns:
+
+- Root: `<div class="content">`
+- Sections: `<section class="title">PROFESSIONAL SUMMARY</section>`
+- Skills: `<p class="competency-item">`
+- Experience headers: `<p class="experience-header">`
+- Bullets: `<p>• ...</p>`
+
+Deprecated layouts (`cv-container`, `experience-item`, etc.) are rejected at load time and after LLM adaptation.
 
 ### 3. Run the Adapter
 
@@ -54,7 +65,11 @@ Find your tailored CV in:
 
 ```
 output/Miguel-Rivero-Lopez-{job-title}.html
+output/shared.css
+output/Miguel-Rivero-Lopez-{job-title}.pdf   # unless --html-only or pdf.enabled: false
 ```
+
+Open the HTML in a browser from the `output/` folder so `shared.css` loads correctly.
 
 ## Advanced Usage
 
@@ -135,23 +150,40 @@ Removes any AI-generated traces:
 - "As an AI model" ❌
 - "This CV was adapted using" ❌
 
-### Step 5: File Generation
+### Step 5: Structure Validation
 
-Creates the final file:
+Validates the adapted HTML still matches the `shared.css` layout:
+
+- Requires `<div class="content">`
+- Rejects deprecated selectors (`cv-container`, `experience-item`, etc.)
+- Runs after LLM adaptation and before save
+
+### Step 6: File Generation
+
+Creates the final files:
 
 ```
-Miguel-Rivero-Lopez-{job-title}.html
+output/Miguel-Rivero-Lopez-{job-title}.html
+output/shared.css
+output/Miguel-Rivero-Lopez-{job-title}.pdf   # when enabled
 ```
+
+PDF generation inlines `shared.css` so Puppeteer renders a styled A4 document.
 
 ## Configuration
 
 Edit `config.yaml` to customize behavior:
 
 ```yaml
-model: 'gpt-4-turbo-preview'
+model: 'gpt-4o'
 temperature: 0.7
-base_cv: 'original/mr-cv-edreams.html'
+base_cv: 'original/MR_cv_base.html'
+shared_css: 'original/shared.css'
 output_dir: 'output'
+
+pdf:
+  enabled: true
+  format: 'A4'
 ```
 
 ## Antigravity Flow
@@ -180,13 +212,19 @@ For no-code automation:
 
 ## Troubleshooting
 
-### "Base CV not found"
+### "Base CV not found" or structure validation error
 
-Ensure your CV is in `original/` directory:
+Ensure your CV is in `original/` and uses the `.content` layout:
 
 ```bash
-ls original/mr-cv-edreams.html
+ls original/MR_cv_base.html
 ```
+
+If you see a message about deprecated layout, compare your file with `original/cv_template.html`.
+
+### "Shared stylesheet not found"
+
+Check `shared_css` in `config.yaml` points to `original/shared.css`.
 
 ### "OpenAI API Error"
 

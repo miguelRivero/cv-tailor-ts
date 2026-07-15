@@ -262,7 +262,7 @@ async function main() {
       ];
       const sections: { [key: string]: any[] } = {};
       let currentSection = '';
-      let headerParagraphs: any[] = [];
+      const headerParagraphs: any[] = [];
 
       // Collect paragraphs by section
       paragraphs.each((i, elem) => {
@@ -304,7 +304,7 @@ async function main() {
               $(elem).addClass('experience-header');
 
               // Clean leading bullet if present (fixes "remove bullet at beginning of dates")
-              let contentText = text.replace(/^•\s*/, '');
+              const contentText = text.replace(/^•\s*/, '');
 
               // Try to apply bolding pattern: "Job Title COMPANY NAME • Date"
               // The regex replaces everything up to the bullet with the bolded company structure

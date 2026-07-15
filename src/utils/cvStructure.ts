@@ -56,8 +56,7 @@ export function updateJobTitleInHtml(
   const $ = cheerio.load(html);
 
   if ($('title').length > 0) {
-    const name =
-      candidateName?.trim() || $('.content > p').first().text().trim() || 'CV';
+    const name = candidateName?.trim() || $('.content > p').first().text().trim() || 'CV';
     $('title').text(`${name} - ${formattedTitle}`);
   }
 
