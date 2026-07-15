@@ -18,16 +18,23 @@ export async function loadBaseCV(cvPath: string): Promise<string> {
 }
 
 /**
- * Save adapted CV to file
+ * Save adapted CV to file and copy shared stylesheet alongside it.
  */
-export async function saveAdaptedCV(content: string, outputPath: string): Promise<void> {
+export async function saveAdaptedCV(
+  content: string,
+  outputPath: string,
+  sharedCssPath?: string
+): Promise<void> {
   try {
-    // Ensure output directory exists
     const dir = path.dirname(outputPath);
     await fs.mkdir(dir, { recursive: true });
 
-    // Write file
     await fs.writeFile(outputPath, content, 'utf-8');
+
+    if (sharedCssPath) {
+      const cssDest = path.join(dir, 'shared.css');
+      await fs.copyFile(sharedCssPath, cssDest);
+    }
   } catch (error) {
     throw new Error(`Failed to save adapted CV: ${error}`);
   }
