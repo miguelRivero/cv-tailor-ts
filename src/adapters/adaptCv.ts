@@ -42,9 +42,12 @@ CRITICAL RULES:
    - This is a MANDATORY requirement - any non-English content is an error
 
 2. STRUCTURE PRESERVATION:
+   - The base CV uses a <div class="content"> paragraph layout styled by shared.css
+   - Required patterns: <section class="title"> for section headings, <p class="competency-item"> for skills, <p class="experience-header"> for company/date lines, and bullet paragraphs starting with "•"
    - Do NOT modify HTML structure, tags, classes, IDs, or layout
    - Do NOT change the number of sections
-   - Do NOT add or remove <div>, <section>, <ul>, <li> elements
+   - Do NOT add or remove <div>, <section>, <p> elements
+   - Do NOT introduce deprecated layouts such as cv-container, experience-item, or skills-grid
    - Do NOT alter CSS classes or styling
    - ONLY rewrite text content inside existing HTML tags
 

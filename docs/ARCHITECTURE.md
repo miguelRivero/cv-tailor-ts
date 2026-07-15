@@ -51,14 +51,17 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 **Responsibility**: Extract job offer content from various sources
 
 **Functions**:
+
 - `parse_offer_from_url(url)`: Scrapes and cleans web pages
 - `parse_offer_from_file(filepath)`: Reads local files
 
 **Dependencies**:
+
 - `requests`: HTTP client
 - `beautifulsoup4`: HTML parsing
 
 **Error Handling**:
+
 - Network timeouts
 - Invalid URLs
 - File not found
@@ -68,12 +71,14 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 **Responsibility**: Extract structured keywords from job offers using LLM
 
 **Process**:
+
 1. Send job offer text to GPT-4
 2. Request structured JSON output
 3. Parse and validate response
 4. Return categorized keywords
 
 **Output Structure**:
+
 ```json
 {
   "hard_skills": ["TypeScript", "Testing", "Performance Optimization"],
@@ -93,6 +98,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 ```
 
 **LLM Configuration**:
+
 - Model: GPT-4-turbo-preview
 - Temperature: 0.7 (balance creativity and consistency)
 - Max tokens: 4000
@@ -102,6 +108,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 **Responsibility**: Extract and normalize job titles
 
 **Process**:
+
 1. Send job offer to GPT-3.5 (faster, cheaper)
 2. Extract job title only
 3. Normalize using `slugify`:
@@ -111,6 +118,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
    - Remove special characters
 
 **Examples**:
+
 ```
 "Senior Frontend Developer" → "senior-frontend-developer"
 "React + TypeScript Engineer" → "react-typescript-engineer"
@@ -152,6 +160,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
    - Natural writing style
 
 **LLM Configuration**:
+
 - Model: GPT-4-turbo-preview
 - Temperature: 0.7
 - Max tokens: 4000
@@ -161,6 +170,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 **Responsibility**: Detect and remove AI-generated traces
 
 **Detection Patterns**:
+
 ```python
 [
   r"(?i)AI",
@@ -174,11 +184,13 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 ```
 
 **Functions**:
+
 - `detect_watermarks(text)`: Find potential traces
 - `remove_watermarks(html)`: Clean HTML content
 - `validate_no_watermarks(html)`: Verify cleanliness
 
 **Post-processing**:
+
 - Remove matched text
 - Clean up extra spaces
 - Remove empty paragraphs/list items
@@ -188,6 +200,7 @@ CV Tailor AI is an intelligent CV adaptation system that uses Large Language Mod
 **Responsibility**: Coordinate the entire workflow
 
 **Command-Line Interface**:
+
 ```bash
 npm start -- [--text TEXT | --file FILE | --url URL]
              [--base BASE_CV] [--pdf-input PDF_CV]
@@ -202,6 +215,7 @@ npm start -- [--text TEXT | --file FILE | --url URL]
 framework-emphasis mode used when adapting the CV (default: `agnostic`).
 
 **Workflow**:
+
 1. Parse arguments
 2. Load job offer
 3. Extract title and keywords (parallel)
@@ -215,12 +229,14 @@ framework-emphasis mode used when adapting the CV (default: `agnostic`).
 ## Data Flow
 
 ### Input Stage
+
 ```
 Job Offer (URL/File/Text)
   └─> Raw text content
 ```
 
 ### Analysis Stage
+
 ```
 Raw text
   ├─> Title Extraction (GPT-3.5) ──> Normalized title
@@ -228,18 +244,21 @@ Raw text
 ```
 
 ### Adaptation Stage
+
 ```
 Base CV HTML + Keywords + Title
   └─> LLM Adaptation (GPT-4) ──> Adapted HTML
 ```
 
 ### Cleaning Stage
+
 ```
 Adapted HTML
   └─> Watermark Removal ──> Clean HTML
 ```
 
 ### Output Stage
+
 ```
 Clean HTML
   └─> File: Miguel-Rivero-Lopez-{title}.html
@@ -248,17 +267,18 @@ Clean HTML
 ## Configuration Management
 
 ### config.yaml Structure
+
 ```yaml
 # LLM Settings
-model: "gpt-4-turbo-preview"
+model: 'gpt-4-turbo-preview'
 temperature: 0.7
 max_tokens: 4000
 
 # File Paths
-base_cv: "original/mr-cv-edreams.html"
-fallback_cv: "original/MR_cv_athenailabs.html"
-output_dir: "output"
-offers_dir: "offers"
+base_cv: 'original/mr-cv-edreams.html'
+fallback_cv: 'original/MR_cv_athenailabs.html'
+output_dir: 'output'
+offers_dir: 'offers'
 
 # Feature Flags
 preserve_structure: true
@@ -268,23 +288,25 @@ remove_ai_traces: true
 
 # Watermark Patterns
 watermark_keywords:
-  - "AI"
-  - "generated"
+  - 'AI'
+  - 'generated'
   # ...
 
 # Naming
-candidate_name: "Miguel-Rivero-Lopez"
+candidate_name: 'Miguel-Rivero-Lopez'
 ```
 
 ## Error Handling Strategy
 
 ### Graceful Degradation
+
 1. **Network Errors**: Retry with exponential backoff
 2. **LLM Errors**: Use fallback prompts or base CV
 3. **Parsing Errors**: Log and skip problematic sections
 4. **File Errors**: Clear error messages with resolution steps
 
 ### Validation Layers
+
 1. **Input Validation**: Check file existence, URL format
 2. **JSON Validation**: Parse and validate LLM responses
 3. **HTML Validation**: Ensure well-formed output
@@ -293,16 +315,19 @@ candidate_name: "Miguel-Rivero-Lopez"
 ## Security Considerations
 
 ### API Key Management
+
 - Never commit keys to repository
 - Use environment variables
 - Support `.env` files
 
 ### Content Sanitization
+
 - HTML escaping for user input
 - Prevent injection attacks
 - Validate URLs before fetching
 
 ### Privacy
+
 - No data sent to third parties (except OpenAI)
 - Local file processing
 - Optional logging controls
@@ -310,15 +335,18 @@ candidate_name: "Miguel-Rivero-Lopez"
 ## Performance Optimization
 
 ### Caching Strategy
+
 - Cache keyword extractions
 - Cache base CV loading
 - Reuse LLM responses when possible
 
 ### Parallel Processing
+
 - Extract title and keywords simultaneously
 - Batch multiple CVs if needed
 
 ### Token Management
+
 - Monitor OpenAI usage
 - Optimize prompt length
 - Truncate long job offers intelligently
@@ -326,16 +354,19 @@ candidate_name: "Miguel-Rivero-Lopez"
 ## Testing Strategy
 
 ### Unit Tests
+
 - Individual function testing
 - Mock LLM responses
 - Edge case coverage
 
 ### Integration Tests
+
 - End-to-end workflow
 - Real API calls (with test account)
 - Output validation
 
 ### Manual Testing
+
 - Visual CV review
 - Watermark detection
 - Structure preservation check
@@ -343,11 +374,13 @@ candidate_name: "Miguel-Rivero-Lopez"
 ## Deployment Options
 
 ### 1. Local CLI
+
 ```bash
 npm start -- --file job.txt
 ```
 
 ### 2. Antigravity Flow
+
 ```
 Import cv_tailor_flow.json
 → Visual workflow editor
@@ -355,6 +388,7 @@ Import cv_tailor_flow.json
 ```
 
 ### 3. Web Service (Future)
+
 ```
 FastAPI backend
 → REST endpoints
@@ -362,6 +396,7 @@ FastAPI backend
 ```
 
 ### 4. CI/CD Pipeline (Future)
+
 ```
 GitHub Actions
 → Automatic adaptation
@@ -371,22 +406,26 @@ GitHub Actions
 ## Extensibility
 
 ### Adding New Base CVs
+
 1. Place HTML file in `original/`
 2. Update `config.yaml`
 3. Test with sample offers
 
 ### Adding New Keyword Categories
+
 1. Update `extract_keywords.py` prompt
 2. Modify output schema
 3. Update adapter prompt
 4. Update tests
 
 ### Custom Post-Processing
+
 1. Create new module in `src/`
 2. Add to `run.py` workflow
 3. Update documentation
 
 ### Alternative LLM Providers
+
 1. Abstract LLM client interface
 2. Add provider-specific implementations
 3. Update configuration
@@ -394,17 +433,20 @@ GitHub Actions
 ## Monitoring and Observability
 
 ### Logging
+
 - Structured logging with levels
 - Timestamped entries
 - Rotation policies
 
 ### Metrics
+
 - Adaptation success rate
 - LLM token usage
 - Processing time
 - Watermark detection rate
 
 ### Alerting
+
 - API errors
 - Watermark detection failures
 - Unusual processing times
@@ -412,6 +454,7 @@ GitHub Actions
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Multi-language support**: Spanish, French, German CVs
 2. **PDF generation**: Convert HTML to PDF automatically
 3. **Template system**: Multiple CV styles
@@ -421,6 +464,7 @@ GitHub Actions
 7. **Learning system**: Improve based on success patterns
 
 ### Technical Debt
+
 1. Add comprehensive error recovery
 2. Implement response caching
 3. Add progress bars for long operations
@@ -430,12 +474,14 @@ GitHub Actions
 ## Contributing Guidelines
 
 ### Code Style
+
 - PEP 8 compliance
 - Type hints
 - Docstrings for all functions
 - Maximum line length: 100 characters
 
 ### Commit Messages
+
 ```
 feat: Add multi-language support
 fix: Resolve watermark detection bug
@@ -444,6 +490,7 @@ test: Add unit tests for parser module
 ```
 
 ### Pull Request Process
+
 1. Fork repository
 2. Create feature branch
 3. Write tests
@@ -455,6 +502,7 @@ test: Add unit tests for parser module
 MIT License - See LICENSE file
 
 Uses:
+
 - OpenAI GPT models
 - BeautifulSoup for parsing
 - Requests for HTTP

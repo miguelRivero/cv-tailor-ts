@@ -53,7 +53,7 @@ export async function generatePdf(
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu'
+        '--disable-gpu',
       ],
       timeout: 60000,
     });

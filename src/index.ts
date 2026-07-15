@@ -7,6 +7,7 @@
 import 'dotenv/config';
 import { Command, Option } from 'commander';
 import * as cheerio from 'cheerio';
+import fs from 'fs/promises';
 import path from 'path';
 import slugify from 'slugify';
 import { loadConfig } from './utils/config.js';
@@ -27,7 +28,12 @@ import {
   generateOutputFilename,
   fileExists,
 } from './utils/fileUtils.js';
-
+import {
+  validateBaseCvStructure,
+  normalizeOutputHtml,
+  updateJobTitleInHtml,
+  inlineStylesheet,
+} from './utils/cvStructure.js';
 
 interface CliOptions {
   text?: string;
@@ -54,35 +60,25 @@ async function main() {
 
   // Input source (mutually exclusive)
   program
+    .addOption(new Option('--text <text>', 'Job offer text directly').conflicts(['file', 'url']))
     .addOption(
-      new Option('--text <text>', 'Job offer text directly').conflicts([
-        'file',
-        'url',
-      ])
+      new Option('--file <path>', 'Path to job offer text file').conflicts(['text', 'url'])
     )
-    .addOption(
-      new Option('--file <path>', 'Path to job offer text file').conflicts([
-        'text',
-        'url',
-      ])
+    .addOption(new Option('--url <url>', 'URL of job offer page').conflicts(['text', 'file']))
+    .option(
+      '--base <path>',
+      'Path to base CV HTML file (default: uses PDF)',
+      'original/MR_cv_base.html'
     )
-    .addOption(
-      new Option('--url <url>', 'URL of job offer page').conflicts([
-        'text',
-        'file',
-      ])
+    .option(
+      '--pdf-input <path>',
+      'Path to base CV PDF file (defaults to the HTML base CV when omitted)'
     )
-    .option('--base <path>', 'Path to base CV HTML file (default: uses PDF)', 'original/MR_cv_base.html')
-    .option('--pdf-input <path>', 'Path to base CV PDF file (defaults to the HTML base CV when omitted)')
     .option('--output-dir <dir>', 'Output directory', 'output')
     .option('--no-watermark-check', 'Skip watermark detection check')
     .option('-v, --verbose', 'Enable verbose output')
     .option('--html-only', 'Generate only HTML output (no PDF attempt)')
-    .option(
-      '--framework <mode>',
-      'Framework emphasis mode: react | vue | agnostic',
-      'agnostic'
-    );
+    .option('--framework <mode>', 'Framework emphasis mode: react | vue | agnostic', 'agnostic');
 
   program.parse();
 
@@ -155,7 +151,7 @@ async function main() {
     if (options.verbose) {
       console.log(
         `✓ Extracted ${keywords.hard_skills?.length || 0} hard skills, ` +
-        `${keywords.technologies?.length || 0} technologies`
+          `${keywords.technologies?.length || 0} technologies`
       );
     }
 
@@ -176,7 +172,6 @@ async function main() {
       // Parse PDF to text
       const pdfText = await parsePdfCV(options.pdfInput);
 
-
       // For PDF input, we need to wrap the text in a basic HTML structure
       // This is a simplified approach - in production, you might want more sophisticated handling
       baseHtml = `
@@ -189,17 +184,22 @@ async function main() {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../original/shared.css">
+    <link rel="stylesheet" href="shared.css">
 </head>
 <body>
     <div class="content">
-        ${pdfText.split('\n').map(line => `<p>${line}</p>`).join('\n')}
+        ${pdfText
+          .split('\n')
+          .map((line) => `<p>${line}</p>`)
+          .join('\n')}
     </div>
 </body>
 </html>
 `;
+      validateBaseCvStructure(baseHtml);
     } else {
       baseHtml = await loadBaseCV(options.base);
+      validateBaseCvStructure(baseHtml);
     }
 
     if (options.verbose) {
@@ -228,6 +228,7 @@ async function main() {
     }
 
     let cleanedHtml = removeWatermarks(adaptedHtml);
+    validateBaseCvStructure(cleanedHtml);
 
     // Check for watermarks
     if (!options.noWatermarkCheck) {
@@ -244,24 +245,21 @@ async function main() {
       console.log('📝 Updating job titles in HTML...');
     }
 
-    const $ = cheerio.load(cleanedHtml);
     const formattedTitle = jobTitle.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
-    // Update <title> tag
-    if ($('title').length > 0) {
-      $('title').text(`${config.candidate_name} - ${formattedTitle}`);
-    }
-
-    // Update <div class="title">
-    const headerTitle = $('.title');
-    if (headerTitle.length > 0) {
-      headerTitle.text(formattedTitle);
-    }
+    cleanedHtml = updateJobTitleInHtml(cleanedHtml, formattedTitle, config.candidate_name);
+    cleanedHtml = normalizeOutputHtml(cleanedHtml);
 
     // Post-processing for paragraph-based HTML from PDF
     if (options.pdfInput) {
+      const $ = cheerio.load(cleanedHtml);
       const paragraphs = $('.content p');
-      const sectionTitles = ['PROFESSIONAL SUMMARY', 'PROFESSIONAL EXPERIENCE', 'CORE COMPETENCIES', 'LANGUAGES'];
+      const sectionTitles = [
+        'PROFESSIONAL SUMMARY',
+        'PROFESSIONAL EXPERIENCE',
+        'CORE COMPETENCIES',
+        'LANGUAGES',
+      ];
       const sections: { [key: string]: any[] } = {};
       let currentSection = '';
       let headerParagraphs: any[] = [];
@@ -310,9 +308,12 @@ async function main() {
 
               // Try to apply bolding pattern: "Job Title COMPANY NAME • Date"
               // The regex replaces everything up to the bullet with the bolded company structure
-              let boldedHtml = contentText.replace(/.*?([A-Z][A-Z\s&]+)\s+•/g, (_match: string, company: string) => {
-                return `<strong class="company-name">${company.trim()}</strong> <span class="job-date">`;
-              });
+              let boldedHtml = contentText.replace(
+                /.*?([A-Z][A-Z\s&]+)\s+•/g,
+                (_match: string, company: string) => {
+                  return `<strong class="company-name">${company.trim()}</strong> <span class="job-date">`;
+                }
+              );
 
               // If regex didn't match (no change), fallback to simple split to ensure bullet is removed
               if (boldedHtml === contentText) {
@@ -331,7 +332,6 @@ async function main() {
               }
 
               $(elem).html(boldedHtml);
-
             } else if (text.startsWith('•')) {
               $(elem).addClass('experience-bullet');
               // Ensure blank space after bullet
@@ -350,7 +350,9 @@ async function main() {
 
         // Parse contact info
         const parts = contactText.split('•').map((p: string) => p.trim());
-        let email = '', phone = '', location = '';
+        let email = '',
+          phone = '',
+          location = '';
 
         parts.forEach((part: string) => {
           if (part.includes('@')) email = part;
@@ -367,19 +369,30 @@ async function main() {
       $('.content').empty();
 
       // Add header paragraphs
-      headerParagraphs.forEach(p => $('.content').append(p));
+      headerParagraphs.forEach((p) => $('.content').append(p));
 
       // Add sections in new order
-      const orderedSections = ['PROFESSIONAL SUMMARY', 'CORE COMPETENCIES', 'PROFESSIONAL EXPERIENCE', 'LANGUAGES'];
-      orderedSections.forEach(sectionName => {
+      const orderedSections = [
+        'PROFESSIONAL SUMMARY',
+        'CORE COMPETENCIES',
+        'PROFESSIONAL EXPERIENCE',
+        'LANGUAGES',
+      ];
+      orderedSections.forEach((sectionName) => {
         if (sections[sectionName]) {
-          sections[sectionName].forEach(p => $('.content').append(p));
+          sections[sectionName].forEach((p) => $('.content').append(p));
         }
       });
+
+      cleanedHtml = $.html();
     }
 
-    cleanedHtml = $.html();
+    validateBaseCvStructure(cleanedHtml);
 
+    const sharedCssPath = path.resolve(config.shared_css);
+    if (!(await fileExists(sharedCssPath))) {
+      throw new Error(`Shared stylesheet not found: ${sharedCssPath}`);
+    }
 
     // Step 8: Save adapted CV
     const candidateSlug = slugify(config.candidate_name, {
@@ -391,15 +404,17 @@ async function main() {
     const outputPathHtml = path.join(options.outputDir, outputFilenameHtml);
     const outputPathPdf = path.join(options.outputDir, outputFilenamePdf);
 
-    // Always save HTML
-    await saveAdaptedCV(cleanedHtml, outputPathHtml);
+    // Always save HTML and copy stylesheet for local preview
+    await saveAdaptedCV(cleanedHtml, outputPathHtml, sharedCssPath);
 
-    // Generate PDF unless --html-only is specified
-    if (!options.htmlOnly) {
+    // Generate PDF unless --html-only is specified or PDF is disabled in config
+    if (!options.htmlOnly && config.pdf?.enabled !== false) {
       if (options.verbose) {
         console.log('📄 Generating PDF output...');
       }
-      await generatePdf(cleanedHtml, outputPathPdf);
+      const cssContent = await fs.readFile(sharedCssPath, 'utf-8');
+      const htmlForPdf = inlineStylesheet(cleanedHtml, cssContent);
+      await generatePdf(htmlForPdf, outputPathPdf);
       if (options.verbose) {
         console.log('✓ PDF generated');
       }

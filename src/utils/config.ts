@@ -10,6 +10,7 @@ export interface Config {
   temperature: number;
   max_tokens: number;
   base_cv: string;
+  shared_css: string;
   fallback_cv: string;
   output_dir: string;
   offers_dir: string;
@@ -46,6 +47,10 @@ export function loadConfig(configPath: string = 'config.yaml'): Config {
   try {
     const fileContents = fs.readFileSync(configPath, 'utf8');
     const config = yaml.load(fileContents) as Config;
+
+    if (!config.shared_css) {
+      config.shared_css = 'original/shared.css';
+    }
 
     // Set defaults for PDF if not present
     if (!config.pdf) {

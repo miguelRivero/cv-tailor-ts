@@ -1,15 +1,16 @@
 # CV Tailor AI Configuration
 
 # OpenAI Model Configuration
-model: "gpt-4-turbo-preview"
+model: 'gpt-4o'
 temperature: 0.7
 max_tokens: 4000
 
 # File Paths
-base_cv: "original/MR_cv_base.html"
-fallback_cv: "original/MR_cv_athenailabs.html"
-output_dir: "output"
-offers_dir: "offers"
+base_cv: 'original/MR_cv_base.html'
+shared_css: 'original/shared.css'
+fallback_cv: 'original/MR_cv_athenailabs.html'
+output_dir: 'output'
+offers_dir: 'offers'
 
 # Adaptation Settings
 preserve_structure: true
@@ -19,28 +20,28 @@ handle_framework_mismatch: true
 # Anti-Watermark Settings
 remove_ai_traces: true
 watermark_keywords:
-  - "AI"
-  - "artificial intelligence"
-  - "generated"
-  - "assistant"
-  - "LLM"
-  - "large language model"
-  - "as an AI"
-  - "as a model"
-  - "this CV has been adapted using"
-  - "automatically generated"
+  - 'AI'
+  - 'artificial intelligence'
+  - 'generated'
+  - 'assistant'
+  - 'LLM'
+  - 'large language model'
+  - 'as an AI'
+  - 'as a model'
+  - 'this CV has been adapted using'
+  - 'automatically generated'
 
 # Naming Convention
 # Candidate display name. The output filename slug is derived from this value.
-candidate_name: "Miguel Rivero López"
+candidate_name: 'Miguel Rivero López'
 
 # PDF Configuration
 pdf:
   enabled: true
-  format: "A4"
+  format: 'A4'
   print_background: true
   margin:
-    top: "0"
-    right: "0"
-    bottom: "0"
-    left: "0"
+    top: '0'
+    right: '0'
+    bottom: '0'
+    left: '0'

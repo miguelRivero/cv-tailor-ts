@@ -51,6 +51,7 @@ npm start -- --text "Senior Frontend Developer needed with React experience..."
 ### 4. Get Your Adapted CV
 
 Find your tailored CV in:
+
 ```
 output/Miguel-Rivero-Lopez-{job-title}.html
 ```
@@ -137,6 +138,7 @@ Removes any AI-generated traces:
 ### Step 5: File Generation
 
 Creates the final file:
+
 ```
 Miguel-Rivero-Lopez-{job-title}.html
 ```
@@ -146,10 +148,10 @@ Miguel-Rivero-Lopez-{job-title}.html
 Edit `config.yaml` to customize behavior:
 
 ```yaml
-model: "gpt-4-turbo-preview"
+model: 'gpt-4-turbo-preview'
 temperature: 0.7
-base_cv: "original/mr-cv-edreams.html"
-output_dir: "output"
+base_cv: 'original/mr-cv-edreams.html'
+output_dir: 'output'
 ```
 
 ## Antigravity Flow
@@ -181,6 +183,7 @@ For no-code automation:
 ### "Base CV not found"
 
 Ensure your CV is in `original/` directory:
+
 ```bash
 ls original/mr-cv-edreams.html
 ```
@@ -188,6 +191,7 @@ ls original/mr-cv-edreams.html
 ### "OpenAI API Error"
 
 Check your API key:
+
 ```bash
 echo $OPENAI_API_KEY
 ```
@@ -195,6 +199,7 @@ echo $OPENAI_API_KEY
 ### "Watermarks detected"
 
 Re-run with verbose mode to see detections:
+
 ```bash
 npm start -- --file offers/job.txt --verbose
 ```
@@ -210,6 +215,7 @@ The LLM response may need cleaning. Check logs and retry.
 **Input**: Job requires React, Redux, TypeScript
 
 **Output**: CV emphasizes:
+
 - "Component-driven architecture transferable to React"
 - TypeScript expertise
 - State management patterns (Vuex → Redux concepts)
@@ -219,6 +225,7 @@ The LLM response may need cleaning. Check logs and retry.
 **Input**: Job at e-commerce company
 
 **Output**: CV highlights:
+
 - Nespresso e-commerce experience
 - Conversion optimization
 - A/B testing
@@ -229,6 +236,7 @@ The LLM response may need cleaning. Check logs and retry.
 **Input**: Early-stage startup needing full-stack
 
 **Output**: CV emphasizes:
+
 - Agile experience
 - Full product lifecycle
 - Cross-functional collaboration
