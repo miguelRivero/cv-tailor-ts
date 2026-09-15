@@ -98,7 +98,13 @@ export type PipelineStepId =
 export type ServerStepId = 'extract-title' | 'extract-keywords' | 'adapt';
 
 export type ApiErrorCode =
-  'bad_request' | 'model_not_allowed' | 'rate_limited' | 'timeout' | 'upstream_error' | 'internal';
+  | 'bad_request'
+  | 'unauthorized'
+  | 'model_not_allowed'
+  | 'rate_limited'
+  | 'timeout'
+  | 'upstream_error'
+  | 'internal';
 
 export interface ApiError {
   code: ApiErrorCode;
@@ -108,12 +114,25 @@ export interface ApiError {
 }
 
 /**
- * One line of the newline-delimited SSE stream from /api/tailor. Once
- * the first byte of the stream is flushed the HTTP status code is fixed
- * at 200, so a failure past that point has to travel as an `error`
- * event rather than a status code - and must always be followed by
- * `done`, so a client that never sees `result` can tell the run failed
- * rather than hanging forever.
+ * One line of the newline-delimited JSON (NDJSON) stream from
+ * /api/tailor: one JSON object per line, `Content-Type:
+ * application/x-ndjson`. Plain NDJSON rather than textbook
+ * `event:`/`data:` SSE framing, since the payload is already a
+ * discriminated union - wrapping it in a second layer of framing would
+ * only add a parser to write on both ends for no benefit. It still
+ * can't use the browser's EventSource API regardless of framing, since
+ * that API is GET-only and can't send a body or an auth header; the
+ * client reads this with fetch() and response.body.getReader() either
+ * way (see web/src/lib/api/client.ts once it exists).
+ *
+ * Once the first byte of the stream is flushed the HTTP status code is
+ * fixed at 200, so a failure past that point has to travel as an
+ * `error` event rather than a status code - and must always be followed
+ * by `done`, so a client that never sees `result` can tell the run
+ * failed rather than hanging forever. `heartbeat` lines keep the
+ * connection alive through Cloudflare's edge and any intermediate
+ * proxy buffering during the ~30-90s adapt call; the client ignores
+ * them.
  */
 export type ServerEvent =
   | { type: 'status'; step: ServerStepId; state: 'start' }
@@ -123,4 +142,5 @@ export type ServerEvent =
   | { type: 'status'; step: 'adapt'; state: 'done' }
   | { type: 'result'; result: TailorResult }
   | { type: 'error'; error: ApiError }
+  | { type: 'heartbeat' }
   | { type: 'done' };
