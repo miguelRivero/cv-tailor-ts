@@ -4,6 +4,9 @@
   "description": "Automated CV adaptation system using LLM intelligence - TypeScript version with PDF support",
   "main": "dist/index.js",
   "type": "commonjs",
+  "workspaces": [
+    "worker"
+  ],
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
@@ -15,7 +18,9 @@
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate": "npm run build && npm run lint && npm run format:check && npm test",
+    "typecheck:worker": "npm run -w worker typecheck",
+    "dev:worker": "npm run -w worker dev",
+    "validate": "npm run build && npm run lint && npm run format:check && npm test && npm run typecheck:worker",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "keywords": [
