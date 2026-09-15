@@ -3,4 +3,6 @@ dist
 coverage
 output
 package-lock.json
-pnpm-lock.yaml
+
+# Local tool state, not part of the project
+.claude

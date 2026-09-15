@@ -9,3 +9,4 @@ output/*.pdf
 output/shared.css
 *.tsbuildinfo
 .idea/
+.claude/
