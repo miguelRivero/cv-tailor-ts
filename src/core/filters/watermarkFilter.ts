@@ -1,21 +1,26 @@
 /**
- * AI watermark detection and removal module
- * Migrated from watermark_filter.py
+ * AI watermark detection and removal.
+ *
+ * Unlike the original module, this one takes its keyword list as an
+ * argument instead of reading config.yaml off disk - there is no
+ * filesystem in a browser or at the edge. Every function defaults to
+ * DEFAULT_CORE_CONFIG.watermarkKeywords, so existing callers that pass
+ * nothing keep exactly the current behaviour.
  */
 
-import { loadConfig } from '../utils/config.js';
+import { DEFAULT_CORE_CONFIG } from '../config/defaults.js';
 
 /**
- * Get list of watermark patterns to detect and remove
+ * Build the list of regex patterns to detect and remove, from a list of
+ * watermark keywords.
  */
-export function getWatermarkPatterns(): RegExp[] {
-  const config = loadConfig();
-  const keywords = config.watermark_keywords || [];
-
+export function getWatermarkPatterns(
+  watermarkKeywords: string[] = DEFAULT_CORE_CONFIG.watermarkKeywords
+): RegExp[] {
   const patterns: RegExp[] = [];
 
   // Convert keywords to regex patterns (case-insensitive)
-  for (const keyword of keywords) {
+  for (const keyword of watermarkKeywords) {
     // Escape special regex characters
     const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     // Create case-insensitive word boundary pattern
@@ -38,8 +43,11 @@ export function getWatermarkPatterns(): RegExp[] {
 /**
  * Detect potential AI watermarks in text
  */
-export function detectWatermarks(text: string): string[] {
-  const patterns = getWatermarkPatterns();
+export function detectWatermarks(
+  text: string,
+  watermarkKeywords: string[] = DEFAULT_CORE_CONFIG.watermarkKeywords
+): string[] {
+  const patterns = getWatermarkPatterns(watermarkKeywords);
   const detections: string[] = [];
 
   for (const pattern of patterns) {
@@ -55,8 +63,11 @@ export function detectWatermarks(text: string): string[] {
 /**
  * Remove AI watermarks from HTML content
  */
-export function removeWatermarks(htmlContent: string): string {
-  const patterns = getWatermarkPatterns();
+export function removeWatermarks(
+  htmlContent: string,
+  watermarkKeywords: string[] = DEFAULT_CORE_CONFIG.watermarkKeywords
+): string {
+  const patterns = getWatermarkPatterns(watermarkKeywords);
   let cleaned = htmlContent;
 
   for (const pattern of patterns) {
@@ -77,7 +88,10 @@ export function removeWatermarks(htmlContent: string): string {
 /**
  * Validate that HTML content contains no AI watermarks
  */
-export function validateNoWatermarks(htmlContent: string): boolean {
-  const detections = detectWatermarks(htmlContent);
+export function validateNoWatermarks(
+  htmlContent: string,
+  watermarkKeywords: string[] = DEFAULT_CORE_CONFIG.watermarkKeywords
+): boolean {
+  const detections = detectWatermarks(htmlContent, watermarkKeywords);
   return detections.length === 0;
 }

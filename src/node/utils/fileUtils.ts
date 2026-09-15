@@ -1,5 +1,7 @@
 /**
- * File utility functions
+ * File utility functions.
+ * generateOutputFilename moved to src/core/naming/filenames.ts, since it
+ * has no filesystem dependency and is needed by the web app too.
  */
 
 import fs from 'fs/promises';
@@ -38,17 +40,6 @@ export async function saveAdaptedCV(
   } catch (error) {
     throw new Error(`Failed to save adapted CV: ${error}`);
   }
-}
-
-/**
- * Generate output filename based on job title
- */
-export function generateOutputFilename(
-  jobTitle: string,
-  candidateName: string = 'Miguel-Rivero-Lopez',
-  extension: string = 'html'
-): string {
-  return `${candidateName}-${jobTitle}.${extension}`;
 }
 
 /**
