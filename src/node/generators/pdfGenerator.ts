@@ -1,10 +1,12 @@
 /**
- * PDF generation module
- * NEW: Converts HTML CVs to PDF format
+ * PDF generation module.
+ * Converts HTML CVs to PDF format using Puppeteer - Node-only, there is
+ * no browser equivalent (see docs/WEB.md for the print-dialog approach
+ * the web app uses instead).
  */
 
 import puppeteer from 'puppeteer';
-import { loadConfig } from '../utils/config.js';
+import { loadConfig } from '../config/loadConfig.js';
 
 export interface PdfOptions {
   format?: string;
@@ -26,16 +28,12 @@ export async function generatePdf(
   options?: PdfOptions
 ): Promise<void> {
   const config = loadConfig();
-  const pdfConfig = config.pdf || {
-    format: 'A4',
-    print_background: true,
-    margin: { top: '0', right: '0', bottom: '0', left: '0' },
-  };
+  const pdfConfig = config.pdf;
 
   // Merge options with config
   const finalOptions = {
     format: options?.format || pdfConfig.format,
-    printBackground: options?.printBackground ?? pdfConfig.print_background,
+    printBackground: options?.printBackground ?? pdfConfig.printBackground,
     margin: {
       top: options?.margin?.top || pdfConfig.margin.top,
       right: options?.margin?.right || pdfConfig.margin.right,

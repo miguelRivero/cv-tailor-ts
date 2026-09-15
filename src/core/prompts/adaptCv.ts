@@ -1,37 +1,58 @@
 /**
- * CV adaptation module using LLM
- * Migrated from adapt_cv.py
- * CRITICAL: Preserves all original prompts and rules exactly
+ * Prompt content for CV adaptation - the main LLM call.
+ * Pulled out of src/node/adapters/adaptCv.ts so the same prompt text can
+ * be reused by the Cloudflare Worker without duplicating it.
+ *
+ * CRITICAL: these strings are preserved byte-for-byte from the original
+ * module, including the pre-existing duplicate "5." rule numbering
+ * below (both "NO TARGET COMPANY MENTION" and the injected "FRAMEWORK
+ * EMPHASIS" block are numbered 5). That is a pre-existing quirk, not a
+ * bug introduced by this move, and it is left untouched: the wording
+ * fed to the model must not shift by a single character as part of a
+ * pure refactor.
  */
 
-import OpenAI from 'openai';
-import { loadConfig } from '../utils/config.js';
-import { Keywords } from '../extractors/extractKeywords.js';
+import { Keywords } from '../types/keywords.js';
+import { FrameworkMode } from '../config/types.js';
 
-export type FrameworkMode = 'react' | 'vue' | 'agnostic';
-
-export interface AdaptationResult {
-  html: string;
-  summary: string;
-}
+export type { FrameworkMode };
 
 /**
- * Adapt HTML CV based on extracted keywords
+ * Build the framework-emphasis instruction block interpolated into the
+ * system prompt. Each mode produces distinct guidance.
  */
-export async function adaptHTML(
-  baseHtml: string,
-  keywords: Keywords,
-  jobTitle: string = '',
-  framework: FrameworkMode = 'agnostic'
-): Promise<AdaptationResult> {
-  const config = loadConfig();
-  const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+export function buildFrameworkInstruction(framework: FrameworkMode): string {
+  switch (framework) {
+    case 'react':
+      return `5. FRAMEWORK EMPHASIS (React ramp-up):
+   - The candidate's primary and most extensive experience is with Vue, but they also know React.
+   - Convey confidently that their strong component-driven, framework experience lets them ramp up on React quickly in a professional setting.
+   - Draw an explicit parallel to how they previously transitioned from AngularJS to their current stack: they have done exactly this kind of framework switch before.
+   - Emphasize transferable concepts: components, hooks / composition API, state management, and reactive patterns.
+   - Do NOT fabricate deep or long-standing React experience; frame it as easy, low-risk ramp-up backed by real component-driven expertise.
+`;
+    case 'vue':
+      return `5. FRAMEWORK EMPHASIS (Vue focus):
+   - Emphasize and stress the candidate's Vue experience specifically as a core strength.
+   - Do NOT translate, map, or compare their skills to React.
+   - Do NOT mention React at all unless the term already appears in the base CV text.
+   - Keep the framing centered on their actual Vue expertise.
+`;
+    case 'agnostic':
+    default:
+      return `5. FRAMEWORK EMPHASIS (framework-agnostic):
+   - Be framework-skeptic and neutral: stress extensive experience with frontend frameworks in general.
+   - Do NOT tie the candidate's identity to any single framework.
+   - Avoid over-emphasizing React, Vue, or any one framework over the others.
+   - Highlight transferable, framework-independent engineering skills (architecture, state management, reactive UI patterns).
+`;
+  }
+}
 
+export function buildAdaptSystemPrompt(framework: FrameworkMode): string {
   const reactInstruction = buildFrameworkInstruction(framework);
 
-  const systemPrompt = `You are an expert CV rewriter specialized in tailoring resumes for specific job opportunities.
+  return `You are an expert CV rewriter specialized in tailoring resumes for specific job opportunities.
 
 CRITICAL RULES:
 
@@ -96,10 +117,16 @@ ${reactInstruction}
 
 Rewrite the CV to align with these extracted keywords while following ALL rules above.
 `;
+}
 
+export function buildAdaptUserMessage(
+  baseHtml: string,
+  keywords: Keywords,
+  jobTitle: string = ''
+): string {
   const keywordsJson = JSON.stringify(keywords, null, 2);
 
-  const userMessage = `Adapt this CV for a job opportunity with these requirements:
+  return `Adapt this CV for a job opportunity with these requirements:
 
 EXTRACTED KEYWORDS:
 ${keywordsJson}
@@ -118,60 +145,4 @@ Remember:
 - No AI traces
 - Return JSON with "html" and "summary" fields
 `;
-
-  try {
-    const completion = await client.chat.completions.create({
-      model: config.model,
-      temperature: config.temperature,
-      max_tokens: config.max_tokens,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-        { role: 'system', content: 'Remember to return ONLY valid JSON.' },
-      ],
-      response_format: { type: 'json_object' },
-    });
-
-    const responseText = completion.choices[0].message.content || '{}';
-    const responseData = JSON.parse(responseText);
-
-    return {
-      html: responseData.html || '',
-      summary: responseData.summary || 'No summary available',
-    };
-  } catch (error) {
-    throw new Error('Failed to adapt CV', { cause: error });
-  }
-}
-
-/**
- * Build the framework-emphasis instruction block interpolated into the system
- * prompt. Each mode produces distinct guidance.
- */
-function buildFrameworkInstruction(framework: FrameworkMode): string {
-  switch (framework) {
-    case 'react':
-      return `5. FRAMEWORK EMPHASIS (React ramp-up):
-   - The candidate's primary and most extensive experience is with Vue, but they also know React.
-   - Convey confidently that their strong component-driven, framework experience lets them ramp up on React quickly in a professional setting.
-   - Draw an explicit parallel to how they previously transitioned from AngularJS to their current stack: they have done exactly this kind of framework switch before.
-   - Emphasize transferable concepts: components, hooks / composition API, state management, and reactive patterns.
-   - Do NOT fabricate deep or long-standing React experience; frame it as easy, low-risk ramp-up backed by real component-driven expertise.
-`;
-    case 'vue':
-      return `5. FRAMEWORK EMPHASIS (Vue focus):
-   - Emphasize and stress the candidate's Vue experience specifically as a core strength.
-   - Do NOT translate, map, or compare their skills to React.
-   - Do NOT mention React at all unless the term already appears in the base CV text.
-   - Keep the framing centered on their actual Vue expertise.
-`;
-    case 'agnostic':
-    default:
-      return `5. FRAMEWORK EMPHASIS (framework-agnostic):
-   - Be framework-skeptic and neutral: stress extensive experience with frontend frameworks in general.
-   - Do NOT tie the candidate's identity to any single framework.
-   - Avoid over-emphasizing React, Vue, or any one framework over the others.
-   - Highlight transferable, framework-independent engineering skills (architecture, state management, reactive UI patterns).
-`;
-  }
 }
