@@ -22,8 +22,13 @@
  *     user already cancelled or that already finished.
  */
 
-import { Keywords } from '../types/keywords.js';
-import { OfferUnreadableReason, PipelineStepId, ServerEvent, TailorResult } from '../types/api.js';
+import type { Keywords } from '../types/keywords.js';
+import type {
+  OfferUnreadableReason,
+  PipelineStepId,
+  ServerEvent,
+  TailorResult,
+} from '../types/api.js';
 
 export type StepStatus = 'pending' | 'active' | 'done' | 'error';
 

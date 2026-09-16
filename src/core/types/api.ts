@@ -8,8 +8,8 @@
  * HTTP/SSE traffic into these shapes before anything else sees them.
  */
 
-import { FrameworkMode } from '../config/types.js';
-import { Keywords } from './keywords.js';
+import type { FrameworkMode } from '../config/types.js';
+import type { Keywords } from './keywords.js';
 
 export type { FrameworkMode };
 
