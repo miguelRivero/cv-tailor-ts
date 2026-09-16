@@ -7,7 +7,7 @@
  * config.yaml to read in a browser or at the edge.
  */
 
-import { CoreConfig } from './types.js';
+import type { CoreConfig } from './types.js';
 
 export const DEFAULT_CORE_CONFIG: CoreConfig = {
   model: 'gpt-4o',

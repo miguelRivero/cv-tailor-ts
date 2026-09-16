@@ -12,8 +12,8 @@
  * pure refactor.
  */
 
-import { Keywords } from '../types/keywords.js';
-import { FrameworkMode } from '../config/types.js';
+import type { Keywords } from '../types/keywords.js';
+import type { FrameworkMode } from '../config/types.js';
 
 export type { FrameworkMode };
 
