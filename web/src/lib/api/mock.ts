@@ -1,10 +1,9 @@
 /**
  * Canned stand-in for the Cloudflare Worker, used to build and click
- * through the whole UI (Phase 5 of the plan) before the worker's
- * `/api/fetch-offer` and `/api/tailor` exist for real. Phase 7 replaces
- * this module with web/src/lib/api/client.ts behind the exact same two
- * function signatures, so nothing above this file (the pipeline hook,
- * every component) needs to change when that happens.
+ * through the whole UI (Phase 5 of the plan) before the worker was
+ * wired. The live path is web/src/lib/api/client.ts, which keeps the
+ * same two function signatures so this file can be swapped back in for
+ * UI-only work without a worker.
  *
  * A handful of magic strings in the offer URL/text let every UI state
  * reachable from real traffic be reached here too, on demand:

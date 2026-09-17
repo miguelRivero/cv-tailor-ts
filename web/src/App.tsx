@@ -16,6 +16,7 @@ import { PipelineProgress } from '@/components/PipelineProgress';
 import { ResultTabs } from '@/components/ResultTabs';
 import { usePipeline, type GenerateOptions } from '@/lib/pipeline/usePipeline';
 import { BASE_CV_OPTIONS } from '@/assets/baseCvs';
+import { workerUrlMissing } from '@/lib/env';
 
 const DEFAULT_ADVANCED: AdvancedOptionsValue = {
   model: DEFAULT_CORE_CONFIG.model,
@@ -100,6 +101,17 @@ function App() {
             Paste a job offer URL, tailor your CV against it, then preview and download the result.
           </p>
         </header>
+
+        {workerUrlMissing && (
+          <Alert variant="destructive">
+            <AlertTriangle />
+            <AlertTitle>Worker URL is not configured</AlertTitle>
+            <AlertDescription>
+              This production build was compiled without VITE_WORKER_URL. Set it as a GitHub Actions
+              repository variable (not a secret) and rebuild — it is public by definition.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
           <div className="flex flex-col gap-6 lg:sticky lg:top-10">
