@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { CvPreview } from '@/components/CvPreview';
 
 function KeywordGroup({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null;
@@ -22,16 +23,16 @@ function KeywordGroup({ label, items }: { label: string; items: string[] }) {
 
 interface ResultTabsProps {
   pipelineState: PipelineState;
+  candidateName: string;
+  inlineCssOnDownload: boolean;
 }
 
 /**
- * The Preview tab renders raw HTML today. Phase 6 replaces it with a
- * sandboxed `srcDoc` iframe (sandbox="allow-same-origin allow-modals",
- * deliberately never allow-scripts) so LLM-authored markup can never
- * execute script - see the plan. Until then this tab only ever shows
- * the mock's own canned HTML, never untrusted input.
+ * Preview is a sandboxed `srcDoc` iframe (see CvPreview):
+ * sandbox="allow-same-origin allow-modals", deliberately never
+ * allow-scripts, so LLM-authored markup cannot execute script.
  */
-export function ResultTabs({ pipelineState }: ResultTabsProps) {
+export function ResultTabs({ pipelineState, candidateName, inlineCssOnDownload }: ResultTabsProps) {
   if (pipelineState.status === 'idle' || pipelineState.status === 'fetching-offer') {
     return null;
   }
@@ -55,9 +56,11 @@ export function ResultTabs({ pipelineState }: ResultTabsProps) {
 
           <TabsContent value="preview">
             {html ? (
-              <div
-                className="max-h-[32rem] overflow-auto rounded-md border bg-white p-4 text-black"
-                dangerouslySetInnerHTML={{ __html: html }}
+              <CvPreview
+                html={html}
+                jobTitle={pipelineState.jobTitle ?? pipelineState.result?.jobTitle ?? 'cv'}
+                candidateName={candidateName}
+                inlineCssOnDownload={inlineCssOnDownload}
               />
             ) : (
               <p className="text-muted-foreground text-sm">

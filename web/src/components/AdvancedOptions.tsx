@@ -110,7 +110,10 @@ export function AdvancedOptions({ value, onChange, disabled }: AdvancedOptionsPr
           <label className="flex items-center justify-between gap-4" htmlFor="inline-css">
             <span className="flex flex-col">
               <span className="text-sm font-medium">Inline CSS in the downloaded file</span>
-              <span className="text-muted-foreground text-xs">Applies once download ships.</span>
+              <span className="text-muted-foreground text-xs">
+                On: one self-contained HTML file. Off: HTML plus a separate shared.css, matching the
+                CLI.
+              </span>
             </span>
             <Switch
               id="inline-css"
