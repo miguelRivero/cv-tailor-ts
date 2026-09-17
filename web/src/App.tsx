@@ -174,7 +174,11 @@ function App() {
             )}
 
             <PipelineProgress pipelineState={pipelineState} />
-            <ResultTabs pipelineState={pipelineState} />
+            <ResultTabs
+              pipelineState={pipelineState}
+              candidateName={DEFAULT_CORE_CONFIG.candidateName}
+              inlineCssOnDownload={advanced.inlineCssOnDownload}
+            />
           </div>
         </div>
       </div>
