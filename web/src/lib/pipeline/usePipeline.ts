@@ -5,9 +5,8 @@
  * this hook only ever dispatches actions into it and reacts to state it
  * already exposes.
  *
- * Today "real async work" means web/src/lib/api/mock.ts. Phase 7 swaps
- * that import for web/src/lib/api/client.ts's fetchOffer/tailorStream,
- * which share the same signatures, so nothing below changes.
+ * Async work goes through web/src/lib/api/client.ts (same signatures
+ * as the Phase 5 mock). The reducer stays the single source of truth.
  */
 import { useCallback, useMemo, useReducer, useRef } from 'react';
 import {
@@ -22,7 +21,8 @@ import {
 } from '@core/pipeline/postProcess';
 import { normalizeOutputHtml } from '@core/html/cvStructure';
 import type { FrameworkMode } from '@core/config/types';
-import { mockFetchOffer, mockTailorStream } from '@/lib/api/mock';
+import type { ApiError } from '@core/types/api';
+import { fetchOffer as requestOffer, tailorStream, WorkerHttpError } from '@/lib/api/client';
 
 export interface GenerateOptions {
   framework: FrameworkMode;
@@ -38,6 +38,17 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
 }
 
+function asPipelineError(error: unknown): ApiError {
+  if (error instanceof WorkerHttpError) {
+    return error.apiError;
+  }
+  return {
+    code: 'internal',
+    message: error instanceof Error ? error.message : 'Could not reach the server.',
+    retryable: true,
+  };
+}
+
 export function usePipeline() {
   const [state, dispatch] = useReducer(pipelineReducer, undefined, createInitialPipelineState);
   const abortRef = useRef<AbortController | null>(null);
@@ -48,7 +59,7 @@ export function usePipeline() {
     dispatch({ type: 'GENERATE_START', offerText });
 
     try {
-      await mockTailorStream(
+      await tailorStream(
         {
           offerText,
           baseHtml: options.baseHtml,
@@ -81,9 +92,10 @@ export function usePipeline() {
         controller.signal
       );
     } catch (error) {
-      if (!isAbortError(error)) {
-        throw error;
+      if (isAbortError(error)) {
+        return;
       }
+      dispatch({ type: 'SERVER_EVENT', event: { type: 'error', error: asPipelineError(error) } });
     }
   }, []);
 
@@ -94,7 +106,7 @@ export function usePipeline() {
       dispatch({ type: 'FETCH_OFFER_START', url });
 
       try {
-        const response = await mockFetchOffer(url, controller.signal);
+        const response = await requestOffer(url, controller.signal);
         if (!response.ok) {
           dispatch({
             type: 'FETCH_OFFER_FAILURE',
@@ -111,9 +123,10 @@ export function usePipeline() {
         await new Promise((resolve) => setTimeout(resolve, 500));
         await runGenerate(response.text, options);
       } catch (error) {
-        if (!isAbortError(error)) {
-          throw error;
+        if (isAbortError(error)) {
+          return;
         }
+        dispatch({ type: 'SERVER_EVENT', event: { type: 'error', error: asPipelineError(error) } });
       }
     },
     [runGenerate]
