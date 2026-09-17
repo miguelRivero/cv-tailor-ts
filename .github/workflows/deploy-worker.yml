@@ -1,15 +1,19 @@
-name: CI
+name: Deploy Worker
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - 'worker/**'
+      - 'src/core/**'
+      - '.github/workflows/deploy-worker.yml'
+
+permissions:
+  contents: read
 
 jobs:
-  validate:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,20 +29,12 @@ jobs:
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Build
-        run: npm run build
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Test
-        run: npm test
-
       - name: Typecheck worker
         run: npm run typecheck:worker
 
-      - name: Typecheck and build web
-        run: npm run build:web
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker

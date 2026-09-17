@@ -1,0 +1,74 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'src/core/**'
+      - 'original/**'
+      - '.github/workflows/deploy-pages.yml'
+
+# Least privilege: checkout needs contents:read; Pages deploy needs
+# pages:write and the OIDC token (id-token:write). The worker workflow
+# has a different, smaller set — a CSS-only change must not be able to
+# deploy the Worker, and a prompt-only change must not be able to
+# publish Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  # Don't cancel an in-flight production deploy if a second push lands.
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          # Root package.json depends on puppeteer for the CLI. Pages
+          # does not need Chromium; skipping the download saves ~150 MB
+          # and a few minutes on every deploy.
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Build web app
+        run: npm run build:web
+        env:
+          # Inlined at build time and therefore public. Repository
+          # *variables*, not secrets — a secret only masks the value in
+          # logs and creates false confidence. See docs/WEB.md.
+          VITE_WORKER_URL: ${{ vars.VITE_WORKER_URL }}
+          VITE_CLIENT_TOKEN: ${{ vars.VITE_CLIENT_TOKEN }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
