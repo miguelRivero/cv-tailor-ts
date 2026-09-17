@@ -41,6 +41,7 @@ instead of Node's — a free cross-check that core has genuinely stayed free of 
 
 ## Deploying
 
-Not yet wired up as of this file's writing — see the repo's plan for the one-time Cloudflare account
-setup (creating the KV namespace, setting secrets with `wrangler secret put`, and the
-`deploy-worker.yml` GitHub Actions workflow) and `docs/WEB.md` once it exists.
+See [docs/WEB.md](../docs/WEB.md) for the one-time Cloudflare account setup
+(KV namespace ids in `wrangler.jsonc`, `wrangler secret put`, GitHub Actions
+secrets and `VITE_*` variables) and for how `.github/workflows/deploy-worker.yml`
+deploys this package on pushes to `main` that touch `worker/` or `src/core/`.
