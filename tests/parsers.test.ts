@@ -2,8 +2,8 @@
  * Unit tests for parsers
  */
 
-import { parseOfferFromFile } from '../src/parsers/parseOffer';
-import { isPdfFile } from '../src/parsers/parsePdf';
+import { parseOfferFromFile } from '../src/node/parsers/parseOffer';
+import { isPdfFile } from '../src/node/parsers/parsePdf';
 
 describe('Parser Tests', () => {
   describe('parseOfferFromFile', () => {

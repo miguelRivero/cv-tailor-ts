@@ -12,9 +12,28 @@
     "es2022": true,
     "jest": true
   },
-  "ignorePatterns": ["dist/", "node_modules/", "coverage/"],
+  "ignorePatterns": ["dist/", "node_modules/", "coverage/", "web/dist/", "web/src/components/ui/"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["web/src/**/*.{ts,tsx}"],
+      "env": {
+        "node": false,
+        "browser": true,
+        "es2022": true
+      },
+      "parserOptions": {
+        "ecmaFeatures": { "jsx": true }
+      },
+      "plugins": ["react-hooks", "react-refresh"],
+      "rules": {
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }]
+      }
+    }
+  ]
 }

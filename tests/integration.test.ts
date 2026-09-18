@@ -2,10 +2,10 @@
  * Integration tests for CV Tailor AI
  */
 
-import { parseOfferFromFile } from '../src/parsers/parseOffer';
-import { extractKeywords } from '../src/extractors/extractKeywords';
-import { extractJobTitle } from '../src/extractors/extractTitle';
-import { fileExists } from '../src/utils/fileUtils';
+import { parseOfferFromFile } from '../src/node/parsers/parseOffer';
+import { extractKeywords } from '../src/node/extractors/extractKeywords';
+import { extractJobTitle } from '../src/node/extractors/extractTitle';
+import { fileExists } from '../src/node/utils/fileUtils';
 
 describe('Integration Tests', () => {
   // Skip tests if no API key is set

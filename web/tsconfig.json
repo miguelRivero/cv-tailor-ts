@@ -1,0 +1,17 @@
+{
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  // A solution-style tsconfig normally carries no compilerOptions of its
+  // own - actual compilation options live in the two referenced configs
+  // above. This "@/*" mapping is duplicated here anyway, because at
+  // least one version of the shadcn CLI reads path aliases from this
+  // top-level file directly rather than following `references` into
+  // tsconfig.app.json (where the same mapping also lives, and where it
+  // actually matters to the compiler). Keep both in sync if this ever
+  // changes.
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

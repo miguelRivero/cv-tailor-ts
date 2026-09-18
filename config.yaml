@@ -19,17 +19,12 @@ handle_framework_mismatch: true
 
 # Anti-Watermark Settings
 remove_ai_traces: true
-watermark_keywords:
-  - 'AI'
-  - 'artificial intelligence'
-  - 'generated'
-  - 'assistant'
-  - 'LLM'
-  - 'large language model'
-  - 'as an AI'
-  - 'as a model'
-  - 'this CV has been adapted using'
-  - 'automatically generated'
+# The default watermark keyword list lives in src/core/config/defaults.ts
+# and is shared by the CLI, the web app and the worker. Uncomment and
+# edit this to override it for the CLI only:
+# watermark_keywords:
+#   - 'AI'
+#   - 'artificial intelligence'
 
 # Naming Convention
 # Candidate display name. The output filename slug is derived from this value.
