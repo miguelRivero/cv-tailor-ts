@@ -39,116 +39,221 @@ example worker file.
 
 ## One-time manual setup
 
-Nothing in GitHub Actions can create a Cloudflare account, log you in,
-or type a secret at a prompt. Do these in order.
+Wrangler is Cloudflare’s CLI for Workers (the `wrangler` package in
+`worker/`). GitHub Actions cannot create an account, open a browser
+login, or type a secret at a prompt. Do these in order, from a
+PowerShell in the repo. You do **not** need to add a domain to
+Cloudflare — the free `*.workers.dev` subdomain is enough.
 
-### 1. Cloudflare account
+Prefer the CLI over hunting in the dashboard. The dashboard layout
+moves; `npx wrangler` output does not.
 
-Create a free account at [dash.cloudflare.com](https://dash.cloudflare.com).
-Note the **Account ID** (overview sidebar). You will paste it into GitHub
-as `CLOUDFLARE_ACCOUNT_ID`.
+### 1. Create a free Cloudflare account
+
+Sign up at [dash.cloudflare.com](https://dash.cloudflare.com). Skip
+adding a site if it asks — Workers do not need one.
+
+Do not look for the Account ID yet. It is no longer in the account-home
+sidebar. Step 3 prints it after you log wrangler in.
 
 ### 2. Log wrangler in locally
 
-From the repo, an interactive browser OAuth flow:
+From the `worker/` directory (so you pick up this repo’s Wrangler,
+not some other global one):
 
-```bash
+```powershell
+cd worker
 npx wrangler login
 ```
 
-### 3. Create the KV namespace and paste the ids
+A browser window opens. Approve access. Back in the terminal you
+should see something like `Successfully logged in.`
 
-The daily rate-limit counter lives in KV. Wrangler prints the ids; it
-does **not** write them back into `worker/wrangler.jsonc`.
+If the browser never appears, copy the URL wrangler printed and open it
+yourself. Stay in `worker/` for the rest of these wrangler commands.
 
-```bash
-cd worker
+### 3. Copy the Account ID with wrangler
+
+```powershell
+npx wrangler whoami
+```
+
+You get a table. The **Account ID** is the 32-character hex string in
+the second column — not your email, not the account name.
+
+```
+👋 You are logged in with an OAuth Token, associated with the email you@example.com.
+┌──────────────────┬──────────────────────────────────┐
+│ Account Name     │ Account ID                       │
+├──────────────────┼──────────────────────────────────┤
+│ Your account     │ a1b2c3d4e5f67890a1b2c3d4e5f67890 │
+└──────────────────┴──────────────────────────────────┘
+```
+
+Save that hex string. It becomes GitHub secret `CLOUDFLARE_ACCOUNT_ID`
+in step 8.
+
+If `whoami` says you are not logged in, go back to step 2.
+
+**Dashboard fallback** (only if wrangler is unavailable):
+
+1. Open [Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages).
+   Left nav may say **Workers**, **Compute**, or **Workers & Pages**.
+2. On that page, find **Account details** (not the home overview) and
+   copy **Account ID**.
+3. Or press `Ctrl+K` anywhere in the dashboard, type `Copy account ID`,
+   Enter.
+4. Or look at the URL after you click into the account:
+   `https://dash.cloudflare.com/<ACCOUNT_ID>/...`
+
+### 4. Create the KV namespace and paste the ids
+
+KV is Cloudflare’s small key-value store. This worker uses one
+namespace (`RATE_KV`) as a daily request counter. Wrangler prints the
+ids; it does **not** write them into `wrangler.jsonc` for you.
+
+Still in `worker/`:
+
+```powershell
 npx wrangler kv namespace create RATE_KV
 npx wrangler kv namespace create RATE_KV --preview
 ```
 
-Paste the returned `id` and `preview_id` over the `REPLACE_WITH_*`
-placeholders in `worker/wrangler.jsonc`. Commit that edit on its own.
+Each command prints a block like:
 
-Local `wrangler dev` simulates KV on disk regardless of those ids, which
-is why development worked before this step.
+```
+✨  Success!
+Add the following to your configuration file:
+kv_namespaces = [
+  { binding = "RATE_KV", id = "0123456789abcdef0123456789abcdef" }
+]
+```
 
-### 4. First deploy from your machine
+The `--preview` run prints a `preview_id` instead of `id`. Open
+`worker/wrangler.jsonc` and replace only the two placeholders — keep
+the rest of the file:
 
-This is what actually creates the worker and assigns the `*.workers.dev`
-subdomain. You need that URL for the Pages variable in step 8.
+```jsonc
+"kv_namespaces": [
+  {
+    "binding": "RATE_KV",
+    "id": "paste-the-id-from-the-first-command",
+    "preview_id": "paste-the-preview_id-from-the-second-command",
+  },
+],
+```
 
-```bash
-cd worker
+Commit that edit on its own (it is config, not a secret).
+
+Local `npm run dev:worker` simulates KV on disk and ignores these ids,
+which is why development worked before this step. A real
+`wrangler deploy` will fail until they are real ids.
+
+### 5. First deploy from your machine
+
+This is what creates the worker in your account and assigns the
+`*.workers.dev` URL. GitHub Actions will redeploy later; you need that
+URL now for the Pages variable.
+
+Still in `worker/`:
+
+```powershell
 npx wrangler deploy
 ```
 
-Copy the printed URL (no trailing slash, no path), e.g.
-`https://cv-tailor-worker.<account>.workers.dev`.
+Success looks like:
 
-### 5. Dedicated OpenAI project and budget
-
-In the OpenAI dashboard, create a **project** used only by this worker.
-Set a hard monthly budget on it, then issue a **project-scoped** key.
-Do this before putting the key anywhere. The client token ships in the
-JS bundle and will eventually leak; the budget is the control that
-actually bounds spend.
-
-### 6. Worker secrets
-
-Type the values at the prompt. Do **not** pipe them — that lands in
-PowerShell history.
-
-```bash
-cd worker
-npx wrangler secret put OPENAI_API_KEY
-npx wrangler secret put CLIENT_TOKEN
+```
+Uploaded cv-tailor-worker
+Published cv-tailor-worker
+  https://cv-tailor-worker.<something>.workers.dev
 ```
 
-Generate `CLIENT_TOKEN` with 32 random bytes, hex-encoded:
+Copy that `https://…workers.dev` URL. No trailing slash, no path. It
+becomes GitHub variable `VITE_WORKER_URL` in step 8.
 
-```bash
+If deploy complains about KV ids, finish step 4. If it complains you
+are not logged in, finish step 2.
+
+### 6. Dedicated OpenAI project and budget
+
+In the OpenAI dashboard, create a **project** used only by this worker.
+Set a hard monthly budget on it, then issue a **project-scoped** key
+(`sk-…`). Do this before putting the key anywhere. The client token
+ships in the JS bundle and will eventually leak; the budget is the
+control that actually bounds spend.
+
+### 7. Worker secrets (OpenAI key + client passphrase)
+
+These live on Cloudflare, not in Git. Wrangler prompts you; the typing
+is hidden. Do **not** pipe the values (`echo … | wrangler secret put`)
+— that lands in PowerShell history.
+
+Generate the passphrase first and keep it in a password manager. You
+need the **same** string in step 8 as `VITE_CLIENT_TOKEN`:
+
+```powershell
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Keep that string: GitHub Actions needs the same value as `VITE_CLIENT_TOKEN`
-in step 8.
+Then, still in `worker/`:
 
-### 7. Cloudflare API token for GitHub Actions
+```powershell
+npx wrangler secret put OPENAI_API_KEY
+```
 
-Dashboard → Manage Account → API Tokens → Create Token, start from the
-**Edit Cloudflare Workers** template. It needs:
+Paste the `sk-…` key at the prompt, Enter.
 
-- Workers Scripts: Edit
-- Account Settings: Read
-- Workers KV Storage: Edit
+```powershell
+npx wrangler secret put CLIENT_TOKEN
+```
 
-The token is shown once. You will store it as `CLOUDFLARE_API_TOKEN`.
+Paste the hex passphrase, Enter.
 
-### 8. GitHub Actions secrets and variables
+### 8. Cloudflare API token for GitHub Actions
 
-Repo → Settings → Secrets and variables → Actions.
+This token is what Actions uses to deploy the worker. It is **not**
+the OpenAI key, and it is **not** the Account ID.
 
-**Secrets** (never `VITE_`):
+1. Open [API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+   (profile icon, top right → **My Profile** → **API Tokens**).
+2. **Create Token**.
+3. Use the **Edit Cloudflare Workers** template (do not start from a
+   blank token).
+4. Confirm it includes:
+   - Account → Workers Scripts → Edit
+   - Account → Account Settings → Read
+   - Account → Workers KV Storage → Edit
+5. Set the account resource to **this** account.
+6. Continue to summary → Create Token.
+7. Copy the token **now**. Cloudflare shows it once.
 
-| Name                    | Value       |
-| ----------------------- | ----------- |
-| `CLOUDFLARE_API_TOKEN`  | from step 7 |
-| `CLOUDFLARE_ACCOUNT_ID` | from step 1 |
+That string becomes GitHub secret `CLOUDFLARE_API_TOKEN`.
 
-**Variables** (public, inlined into the Pages bundle):
+### 9. GitHub Actions secrets and variables
+
+In the GitHub repo: **Settings → Secrets and variables → Actions**.
+
+**Secrets** (the Secrets tab — never names starting with `VITE_`):
+
+| Name                    | Value                             |
+| ----------------------- | --------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | from step 8                       |
+| `CLOUDFLARE_ACCOUNT_ID` | the hex id from `wrangler whoami` |
+
+**Variables** (the Variables tab — public, inlined into the Pages bundle):
 
 | Name                | Value                                        |
 | ------------------- | -------------------------------------------- |
-| `VITE_WORKER_URL`   | worker origin from step 4, no trailing slash |
-| `VITE_CLIENT_TOKEN` | the same passphrase as `CLIENT_TOKEN`        |
+| `VITE_WORKER_URL`   | `https://…workers.dev` from step 5, no slash |
+| `VITE_CLIENT_TOKEN` | the same hex passphrase as `CLIENT_TOKEN`    |
 
 `VITE_*` is substituted at `vite build` time. Putting either of these
 in a secret only redacts the Actions log and suggests they are hidden
 from visitors. They are not. The rate limit and the OpenAI monthly cap
 are the real backstops.
 
-### 9. Enable GitHub Pages from Actions
+### 10. Enable GitHub Pages from Actions
 
 Repo → Settings → Pages → **Source: GitHub Actions**. Not “Deploy from
 a branch”. A branch deploy would publish whatever is on `main` without
