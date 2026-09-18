@@ -9,31 +9,18 @@ import { Command, Option } from 'commander';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
 import path from 'path';
-import slugify from 'slugify';
-import { loadConfig } from './utils/config.js';
-import { parseOfferFromUrl, parseOfferFromFile } from './parsers/parseOffer.js';
-import { parsePdfCV } from './parsers/parsePdf.js';
-import { extractKeywords } from './extractors/extractKeywords.js';
-import { extractJobTitle } from './extractors/extractTitle.js';
-import { adaptHTML } from './adapters/adaptCv.js';
-import {
-  removeWatermarks,
-  validateNoWatermarks,
-  detectWatermarks,
-} from './filters/watermarkFilter.js';
-import { generatePdf } from './generators/pdfGenerator.js';
-import {
-  loadBaseCV,
-  saveAdaptedCV,
-  generateOutputFilename,
-  fileExists,
-} from './utils/fileUtils.js';
-import {
-  validateBaseCvStructure,
-  normalizeOutputHtml,
-  updateJobTitleInHtml,
-  inlineStylesheet,
-} from './utils/cvStructure.js';
+import { loadConfig } from './node/config/loadConfig.js';
+import { parseOfferFromUrl, parseOfferFromFile } from './node/parsers/parseOffer.js';
+import { parsePdfCV } from './node/parsers/parsePdf.js';
+import { extractKeywords } from './node/extractors/extractKeywords.js';
+import { extractJobTitle } from './node/extractors/extractTitle.js';
+import { adaptHTML } from './node/adapters/adaptCv.js';
+import { generatePdf } from './node/generators/pdfGenerator.js';
+import { loadBaseCV, saveAdaptedCV, fileExists } from './node/utils/fileUtils.js';
+import { validateNoWatermarks } from './core/filters/watermarkFilter.js';
+import { generateOutputFilename, slugifyCandidate } from './core/naming/filenames.js';
+import { validateBaseCvStructure, inlineStylesheet } from './core/html/cvStructure.js';
+import { stageRemoveWatermarks, rewriteTitleAndNormalize } from './core/pipeline/postProcess.js';
 
 interface CliOptions {
   text?: string;
@@ -227,14 +214,20 @@ async function main() {
       console.log('🧹 Removing AI watermarks...');
     }
 
-    let cleanedHtml = removeWatermarks(adaptedHtml);
-    validateBaseCvStructure(cleanedHtml);
+    const watermarkStage = stageRemoveWatermarks(adaptedHtml, {
+      watermarkKeywords: config.watermarkKeywords,
+      checkWatermarks: !options.noWatermarkCheck,
+    });
 
-    // Check for watermarks
-    if (!options.noWatermarkCheck) {
-      const detections = detectWatermarks(cleanedHtml);
-      if (detections.length > 0) {
-        console.log(`⚠️  Warning: Detected potential AI watermarks: ${detections.join(', ')}`);
+    if (watermarkStage.structureWarnings.length > 0) {
+      throw new Error(watermarkStage.structureWarnings.join(' '));
+    }
+
+    if (watermarkStage.watermarksChecked) {
+      if (watermarkStage.watermarkDetections.length > 0) {
+        console.log(
+          `⚠️  Warning: Detected potential AI watermarks: ${watermarkStage.watermarkDetections.join(', ')}`
+        );
       } else if (options.verbose) {
         console.log('✓ No watermarks detected');
       }
@@ -245,10 +238,10 @@ async function main() {
       console.log('📝 Updating job titles in HTML...');
     }
 
-    const formattedTitle = jobTitle.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-
-    cleanedHtml = updateJobTitleInHtml(cleanedHtml, formattedTitle, config.candidate_name);
-    cleanedHtml = normalizeOutputHtml(cleanedHtml);
+    let cleanedHtml = rewriteTitleAndNormalize(watermarkStage.html, {
+      jobTitle,
+      candidateName: config.candidateName,
+    });
 
     // Post-processing for paragraph-based HTML from PDF
     if (options.pdfInput) {
@@ -389,16 +382,13 @@ async function main() {
 
     validateBaseCvStructure(cleanedHtml);
 
-    const sharedCssPath = path.resolve(config.shared_css);
+    const sharedCssPath = path.resolve(config.sharedCss);
     if (!(await fileExists(sharedCssPath))) {
       throw new Error(`Shared stylesheet not found: ${sharedCssPath}`);
     }
 
     // Step 8: Save adapted CV
-    const candidateSlug = slugify(config.candidate_name, {
-      strict: true,
-      remove: /[*+~.()'"!:@]/g,
-    });
+    const candidateSlug = slugifyCandidate(config.candidateName);
     const outputFilenameHtml = generateOutputFilename(jobTitle, candidateSlug, 'html');
     const outputFilenamePdf = generateOutputFilename(jobTitle, candidateSlug, 'pdf');
     const outputPathHtml = path.join(options.outputDir, outputFilenameHtml);

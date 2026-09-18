@@ -8,7 +8,7 @@ import {
   normalizeOutputHtml,
   updateJobTitleInHtml,
   inlineStylesheet,
-} from '../src/utils/cvStructure';
+} from '../src/core/html/cvStructure';
 
 describe('CV Structure Validation', () => {
   it('accepts the base CV paragraph layout', async () => {

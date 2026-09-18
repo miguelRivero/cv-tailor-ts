@@ -4,6 +4,10 @@
   "description": "Automated CV adaptation system using LLM intelligence - TypeScript version with PDF support",
   "main": "dist/index.js",
   "type": "commonjs",
+  "workspaces": [
+    "worker",
+    "web"
+  ],
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
@@ -12,10 +16,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint": "eslint --ext .ts,.tsx src tests web/src",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate": "npm run build && npm run lint && npm run format:check && npm test",
+    "typecheck:worker": "npm run -w worker typecheck",
+    "dev:worker": "npm run -w worker dev",
+    "typecheck:web": "npm run -w web typecheck",
+    "build:web": "npm run typecheck:web && npm run -w web build",
+    "dev:web": "npm run -w web dev",
+    "validate": "npm run build && npm run lint && npm run format:check && npm test && npm run typecheck:worker && npm run build:web",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "keywords": [
@@ -48,13 +57,15 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.26",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.0"
+    "typescript": "^6.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.19.0"
   }
 }
