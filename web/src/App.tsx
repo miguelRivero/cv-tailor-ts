@@ -11,7 +11,9 @@ import { OfferInputCard } from '@/components/OfferInputCard';
 import { OptionsCard } from '@/components/OptionsCard';
 import type { BaseCvChoice } from '@/components/BaseCvSelector';
 import type { AdvancedOptionsValue } from '@/components/AdvancedOptions';
+import { AppHeader } from '@/components/AppHeader';
 import { GenerateBar } from '@/components/GenerateBar';
+import { IdleHero } from '@/components/IdleHero';
 import { PipelineProgress } from '@/components/PipelineProgress';
 import { ResultTabs } from '@/components/ResultTabs';
 import { usePipeline, type GenerateOptions } from '@/lib/pipeline/usePipeline';
@@ -94,27 +96,28 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6 lg:p-10">
-        <header>
-          <h1 className="text-2xl font-semibold">CV Tailor</h1>
-          <p className="text-muted-foreground text-sm">
-            Paste a job offer URL, tailor your CV against it, then preview and download the result.
-          </p>
-        </header>
-
-        {workerUrlMissing && (
-          <Alert variant="destructive">
-            <AlertTriangle />
-            <AlertTitle>Worker URL is not configured</AlertTitle>
-            <AlertDescription>
-              This production build was compiled without VITE_WORKER_URL. Set it as a GitHub Actions
-              repository variable (not a secret) and rebuild — it is public by definition.
-            </AlertDescription>
-          </Alert>
-        )}
-
+      <div className="mx-auto max-w-6xl p-6 lg:p-10">
         <div className="grid gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
-          <div className="flex flex-col gap-6 lg:sticky lg:top-10">
+          <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
+            <AppHeader />
+            {workerUrlMissing && (
+              <Alert variant="destructive">
+                <AlertTriangle />
+                <AlertTitle>Worker URL is not configured</AlertTitle>
+                <AlertDescription>
+                  This production build was compiled without VITE_WORKER_URL. Set it as a GitHub
+                  Actions repository variable (not a secret) and rebuild — it is public by
+                  definition.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          {pipelineState.status === 'idle' && (
+            <IdleHero className="lg:col-start-2 lg:row-start-2 lg:self-start" />
+          )}
+
+          <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-2 lg:sticky lg:top-10">
             <OfferInputCard
               url={offerUrl}
               onUrlChange={setOfferUrl}
@@ -145,53 +148,55 @@ function App() {
             />
           </div>
 
-          <div className="flex flex-col gap-6">
-            {pipelineState.status === 'failed' && pipelineState.error && (
-              <Alert variant="destructive">
-                <AlertTriangle />
-                <AlertTitle>Generation failed</AlertTitle>
-                <AlertDescription>{pipelineState.error.message}</AlertDescription>
-                {pipelineState.error.retryable && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-2 w-fit"
-                    onClick={handleGenerate}
-                  >
-                    <RefreshCw />
-                    Retry
-                  </Button>
-                )}
-              </Alert>
-            )}
+          {pipelineState.status !== 'idle' && (
+            <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+              {pipelineState.status === 'failed' && pipelineState.error && (
+                <Alert variant="destructive">
+                  <AlertTriangle />
+                  <AlertTitle>Generation failed</AlertTitle>
+                  <AlertDescription>{pipelineState.error.message}</AlertDescription>
+                  {pipelineState.error.retryable && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 w-fit"
+                      onClick={handleGenerate}
+                    >
+                      <RefreshCw />
+                      Retry
+                    </Button>
+                  )}
+                </Alert>
+              )}
 
-            {pipelineState.warnings.length > 0 && (
-              <Alert>
-                <AlertTriangle />
-                <AlertTitle>Review before downloading</AlertTitle>
-                <AlertDescription>
-                  <ul className="list-inside list-disc">
-                    {pipelineState.warnings.map((warning, index) => (
-                      // The same structural defect can legitimately be
-                      // reported twice - once right after watermark
-                      // removal, once after the final structure check
-                      // (see stageRemoveWatermarks/validateFinalStructure
-                      // in src/core/pipeline/postProcess.ts) - so the
-                      // warning text itself is not a safe key.
-                      <li key={index}>{warning}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
+              {pipelineState.warnings.length > 0 && (
+                <Alert>
+                  <AlertTriangle />
+                  <AlertTitle>Review before downloading</AlertTitle>
+                  <AlertDescription>
+                    <ul className="list-inside list-disc">
+                      {pipelineState.warnings.map((warning, index) => (
+                        // The same structural defect can legitimately be
+                        // reported twice - once right after watermark
+                        // removal, once after the final structure check
+                        // (see stageRemoveWatermarks/validateFinalStructure
+                        // in src/core/pipeline/postProcess.ts) - so the
+                        // warning text itself is not a safe key.
+                        <li key={index}>{warning}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            <PipelineProgress pipelineState={pipelineState} />
-            <ResultTabs
-              pipelineState={pipelineState}
-              candidateName={DEFAULT_CORE_CONFIG.candidateName}
-              inlineCssOnDownload={advanced.inlineCssOnDownload}
-            />
-          </div>
+              <PipelineProgress pipelineState={pipelineState} />
+              <ResultTabs
+                pipelineState={pipelineState}
+                candidateName={DEFAULT_CORE_CONFIG.candidateName}
+                inlineCssOnDownload={advanced.inlineCssOnDownload}
+              />
+            </div>
+          )}
         </div>
       </div>
       <Toaster />
