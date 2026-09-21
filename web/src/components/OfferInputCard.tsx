@@ -52,7 +52,7 @@ export function OfferInputCard({
   const disabled = pipelineState.status === 'fetching-offer' || pipelineState.status === 'running';
 
   return (
-    <Card>
+    <Card size="sm">
       <CardHeader>
         <CardTitle>Job offer</CardTitle>
       </CardHeader>
@@ -70,7 +70,7 @@ export function OfferInputCard({
           />
           {isFetching && (
             <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              <Loader2 className="text-marigold size-3.5 animate-spin" aria-hidden />
               Reading the job page…
             </p>
           )}

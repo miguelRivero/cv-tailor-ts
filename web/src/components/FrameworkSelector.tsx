@@ -19,7 +19,7 @@ export function FrameworkSelector({ value, onChange, disabled }: FrameworkSelect
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label>Framework framing</Label>
+      <Label>Frontend Framework Framing</Label>
       <ToggleGroup
         type="single"
         variant="outline"
@@ -30,7 +30,7 @@ export function FrameworkSelector({ value, onChange, disabled }: FrameworkSelect
         }}
       >
         {FRAMEWORKS.map((framework) => (
-          <ToggleGroupItem key={framework.value} value={framework.value} className="flex-1">
+          <ToggleGroupItem key={framework.value} value={framework.value}>
             {framework.label}
           </ToggleGroupItem>
         ))}
