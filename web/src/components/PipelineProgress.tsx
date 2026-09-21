@@ -22,11 +22,11 @@ const STEP_ORDER: PipelineStepId[] = [
 function StepIcon({ status }: { status: StepInfo['status'] }) {
   switch (status) {
     case 'done':
-      return <CheckCircle2 className="text-primary size-4" aria-hidden />;
+      return <CheckCircle2 className="text-teal size-4" aria-hidden />;
     case 'active':
-      return <Loader2 className="text-primary size-4 animate-spin" aria-hidden />;
+      return <Loader2 className="text-marigold size-4 animate-spin" aria-hidden />;
     case 'error':
-      return <XCircle className="text-destructive size-4" aria-hidden />;
+      return <XCircle className="text-coral size-4" aria-hidden />;
     default:
       return <Circle className="text-muted-foreground size-4" aria-hidden />;
   }
@@ -49,7 +49,7 @@ export function PipelineProgress({ pipelineState }: PipelineProgressProps) {
   }
 
   return (
-    <Card>
+    <Card size="sm">
       <CardHeader>
         <CardTitle>Progress</CardTitle>
       </CardHeader>
@@ -64,7 +64,17 @@ export function PipelineProgress({ pipelineState }: PipelineProgressProps) {
               </div>
               <div className="flex flex-1 flex-col">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium">{STEP_LABELS[id]}</span>
+                  <span
+                    className={
+                      step.status === 'active'
+                        ? 'text-marigold text-sm font-medium'
+                        : step.status === 'done'
+                          ? 'text-teal text-sm font-medium'
+                          : 'text-sm font-medium'
+                    }
+                  >
+                    {STEP_LABELS[id]}
+                  </span>
                   {duration && <span className="text-muted-foreground text-xs">{duration}</span>}
                 </div>
                 {step.detail && step.status !== 'error' && (

@@ -29,7 +29,7 @@ export function OptionsCard({
   disabled,
 }: OptionsCardProps) {
   return (
-    <Card>
+    <Card size="sm">
       <CardHeader>
         <CardTitle>Options</CardTitle>
       </CardHeader>

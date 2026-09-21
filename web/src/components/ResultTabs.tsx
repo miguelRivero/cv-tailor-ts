@@ -41,7 +41,7 @@ export function ResultTabs({ pipelineState, candidateName, inlineCssOnDownload }
   const html = processedHtml ?? result?.html;
 
   return (
-    <Card>
+    <Card size="sm">
       <CardHeader>
         <CardTitle>Result</CardTitle>
       </CardHeader>
