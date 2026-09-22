@@ -13,8 +13,9 @@ Nova preset — Lucide icons, Geist font).
 npm run dev:web     # from the repo root - starts the Vite dev server
 ```
 
-Open **http://127.0.0.1:5180/cv-tailor-ts/**. Vite binds `127.0.0.1` on port 5180 and will not
-fall back to another port. The `/cv-tailor-ts/` path is required.
+Open **http://127.0.0.1:5180/cv-tailor-ts/** (or `http://localhost:5180/cv-tailor-ts/`). Vite
+listens on both `127.0.0.1` and `::1`, port 5180, and will not fall back to another port. The
+`/cv-tailor-ts/` path is required.
 
 or from inside this directory: `npm run dev`. The dev server proxies `/api/*` requests to a worker
 running locally on `http://127.0.0.1:8787` (see [`../worker/README.md`](../worker/README.md)), so
