@@ -1,7 +1,37 @@
-import { defineConfig } from 'vite';
+import { createServer } from 'node:http';
+import path from 'node:path';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'node:path';
+
+/**
+ * Vite accepts a single listen address. `host: '127.0.0.1'` misses
+ * `localhost` when it resolves to ::1, which is common on Windows.
+ * The same port can be bound on both loopbacks.
+ */
+function listenOnIpv6Loopback(): Plugin {
+  return {
+    name: 'listen-on-ipv6-loopback',
+    configureServer(server) {
+      return () => {
+        const port = server.config.server.port;
+        if (!port) return;
+        const ipv6 = createServer(server.middlewares);
+        ipv6.on('upgrade', (req, socket, head) => {
+          server.httpServer?.emit('upgrade', req, socket, head);
+        });
+        ipv6.on('error', (error: NodeJS.ErrnoException) => {
+          if (error.code === 'EADDRINUSE') return;
+          server.config.logger.warn(`Could not listen on [::1]:${port}: ${error.message}`);
+        });
+        ipv6.listen(port, '::1');
+        server.httpServer?.on('close', () => {
+          ipv6.close();
+        });
+      };
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,7 +50,7 @@ export default defineConfig({
   // there's no mode-conditional path bug to discover only after deploy.
   base: '/cv-tailor-ts/',
 
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), listenOnIpv6Loopback()],
 
   // Prebundle cheerio explicitly for a deterministic dev server -
   // @core/html/cvStructure.ts (transitively pulled in by
@@ -45,6 +75,11 @@ export default defineConfig({
   },
 
   server: {
+    // IPv4 loopback. `listenOnIpv6Loopback` binds ::1 on this same port
+    // so `localhost` works when it resolves to IPv6.
+    host: '127.0.0.1',
+    port: 5180,
+    strictPort: true,
     // @core and @assets resolve outside Vite's project root (this
     // directory); without this, Vite's dev server refuses to serve
     // files it considers outside the project for security reasons.

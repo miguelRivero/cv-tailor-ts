@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { FrameworkMode } from '@core/config/types';
 import { DEFAULT_CORE_CONFIG } from '@core/config/defaults';
+import { resolveRunCandidateName } from '@core/html/cvStructure';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -66,10 +67,16 @@ function App() {
       : (BASE_CV_OPTIONS.find((option) => option.id === baseCvChoice)?.html ??
         BASE_CV_OPTIONS[0].html);
 
-  const generateOptions: GenerateOptions = {
-    framework,
+  const candidateName = resolveRunCandidateName({
+    useConfiguredName: baseCvChoice === 'default',
+    configuredName: DEFAULT_CORE_CONFIG.candidateName,
     baseHtml: activeBaseHtml,
-    candidateName: DEFAULT_CORE_CONFIG.candidateName,
+  });
+
+  const generateOptions: GenerateOptions = {
+    framework: baseCvChoice === 'default' ? framework : undefined,
+    baseHtml: activeBaseHtml,
+    candidateName,
     model: advanced.model,
     temperature: advanced.temperature,
     checkWatermarks: advanced.checkWatermarks,
@@ -192,7 +199,7 @@ function App() {
               <PipelineProgress pipelineState={pipelineState} />
               <ResultTabs
                 pipelineState={pipelineState}
-                candidateName={DEFAULT_CORE_CONFIG.candidateName}
+                candidateName={candidateName}
                 inlineCssOnDownload={advanced.inlineCssOnDownload}
               />
             </div>

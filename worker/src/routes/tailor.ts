@@ -11,25 +11,20 @@ import {
   normalizeJobTitle,
 } from '../../../src/core/prompts/extractTitle.js';
 import {
-  KEYWORDS_SYSTEM_PROMPT,
+  buildKeywordsSystemPrompt,
   buildKeywordsUserMessage,
 } from '../../../src/core/prompts/extractKeywords.js';
 import {
   buildAdaptSystemPrompt,
   buildAdaptUserMessage,
-  FrameworkMode,
 } from '../../../src/core/prompts/adaptCv.js';
 import { Keywords } from '../../../src/core/types/keywords.js';
 import { DEFAULT_CORE_CONFIG } from '../../../src/core/config/defaults.js';
-import { ApiError, ServerEvent, TailorRequest, TailorResult } from '../../../src/core/types/api.js';
+import { ApiError, ServerEvent, TailorResult } from '../../../src/core/types/api.js';
+import { validateRequest } from '../lib/validateTailorRequest.js';
 
 const ALLOWED_MODELS = new Set(['gpt-4o', 'gpt-4o-mini', 'gpt-4.1-mini']);
 const HEARTBEAT_INTERVAL_MS = 15_000;
-const FRAMEWORK_MODES = new Set<FrameworkMode>(['react', 'vue', 'agnostic']);
-
-function isFrameworkMode(value: unknown): value is FrameworkMode {
-  return typeof value === 'string' && FRAMEWORK_MODES.has(value as FrameworkMode);
-}
 
 function toApiError(error: unknown): Omit<ApiError, 'step'> {
   if (error instanceof OpenAiError) {
@@ -70,40 +65,6 @@ function toApiError(error: unknown): Omit<ApiError, 'step'> {
     code: 'internal',
     message: 'Something went wrong while tailoring the CV.',
     retryable: true,
-  };
-}
-
-function validateRequest(
-  body: unknown,
-  maxOfferChars: number
-): { error: string } | { request: TailorRequest } {
-  if (typeof body !== 'object' || body === null) {
-    return { error: 'Request body must be a JSON object.' };
-  }
-  const candidate = body as Partial<TailorRequest>;
-
-  if (!candidate.offerText || typeof candidate.offerText !== 'string') {
-    return { error: 'offerText is required.' };
-  }
-  if (candidate.offerText.length > maxOfferChars) {
-    return { error: `offerText exceeds ${maxOfferChars} characters.` };
-  }
-  if (!candidate.baseHtml || typeof candidate.baseHtml !== 'string') {
-    return { error: 'baseHtml is required.' };
-  }
-
-  const framework: FrameworkMode = isFrameworkMode(candidate.framework)
-    ? candidate.framework
-    : 'agnostic';
-
-  return {
-    request: {
-      offerText: candidate.offerText,
-      baseHtml: candidate.baseHtml,
-      framework,
-      model: candidate.model,
-      temperature: candidate.temperature,
-    },
   };
 }
 
@@ -205,7 +166,7 @@ export async function handleTailor(
         model,
         temperature,
         messages: [
-          { role: 'system', content: KEYWORDS_SYSTEM_PROMPT },
+          { role: 'system', content: buildKeywordsSystemPrompt(tailorRequest.framework) },
           { role: 'user', content: buildKeywordsUserMessage(tailorRequest.offerText) },
         ],
         jsonObject: true,
@@ -224,7 +185,12 @@ export async function handleTailor(
             { role: 'system', content: buildAdaptSystemPrompt(tailorRequest.framework) },
             {
               role: 'user',
-              content: buildAdaptUserMessage(tailorRequest.baseHtml, keywords, jobTitle),
+              content: buildAdaptUserMessage(
+                tailorRequest.baseHtml,
+                keywords,
+                jobTitle,
+                tailorRequest.framework
+              ),
             },
             { role: 'system', content: 'Remember to return ONLY valid JSON.' },
           ],

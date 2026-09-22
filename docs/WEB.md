@@ -24,11 +24,15 @@ Two processes, from the repo root:
 cp worker/.dev.vars.example worker/.dev.vars   # then fill in OPENAI_API_KEY
 npm run dev:worker
 
-# Terminal 2 — Vite on http://localhost:5173/cv-tailor-ts/
+# Terminal 2 — Vite on http://127.0.0.1:5180/cv-tailor-ts/
 # Leave VITE_WORKER_URL empty so /api is proxied to 8787 (no CORS).
 cp web/.env.example web/.env.local             # VITE_CLIENT_TOKEN must match .dev.vars
 npm run dev:web
 ```
+
+Vite listens on `127.0.0.1` and `::1`, port **5180** (`strictPort`). Open
+**http://127.0.0.1:5180/cv-tailor-ts/** — the `/cv-tailor-ts/` prefix is
+required. `http://127.0.0.1:5180/` alone is not the app.
 
 Generate a local passphrase with
 `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
@@ -36,6 +40,17 @@ and put the **same** value in `worker/.dev.vars` (`CLIENT_TOKEN`) and
 `web/.env.local` (`VITE_CLIENT_TOKEN`). If `web/.env.local` is missing,
 the dev client falls back to `dev-local-token`, which matches the
 example worker file.
+
+### Base CV and frontend framing
+
+React / Vue / Agnostic is shown only for **Default CV (Miguel Rivero López)**.
+**Blank template** and an uploaded HTML file hide that control. Generate then
+omits `framework`, and the worker uses the career-neutral prompts instead of
+falling back to `agnostic` (which still talks about frontend frameworks).
+
+The blank template is `original/cv_template.html`: the same `.content` layout
+with placeholder text, not a second copy of the default CV. Upload accepts
+`.html` in that layout. A PDF is not a base CV in the web app.
 
 ## One-time manual setup
 
@@ -278,7 +293,8 @@ Pages bundle.
 ## CORS
 
 The worker allowlists `https://miguelrivero.github.io` (scheme + host,
-**no path, no trailing slash**) plus localhost for Vite. Getting the
+**no path, no trailing slash**) plus the Vite dev origins
+`http://127.0.0.1:5180` and `http://localhost:5180`. Getting the
 Pages origin wrong is the most common CORS failure: the site lives at
 `https://miguelrivero.github.io/cv-tailor-ts/`, but the Origin header is
 still `https://miguelrivero.github.io`. If this repo is ever hosted

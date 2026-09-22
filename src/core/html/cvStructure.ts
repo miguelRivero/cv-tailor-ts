@@ -48,6 +48,24 @@ export function normalizeOutputHtml(html: string): string {
   return $.html();
 }
 
+/**
+ * Name for the document title and download filename.
+ * The default CV keeps the configured name. A blank template or an
+ * uploaded HTML file uses the first paragraph of `.content` instead,
+ * so another person's CV is not labeled with the default candidate.
+ */
+export function resolveRunCandidateName(options: {
+  useConfiguredName: boolean;
+  configuredName: string;
+  baseHtml: string;
+}): string {
+  if (options.useConfiguredName && options.configuredName.trim()) {
+    return options.configuredName.trim();
+  }
+  const $ = cheerio.load(options.baseHtml);
+  return $('.content > p').first().text().trim() || 'CV';
+}
+
 export function updateJobTitleInHtml(
   html: string,
   formattedTitle: string,
