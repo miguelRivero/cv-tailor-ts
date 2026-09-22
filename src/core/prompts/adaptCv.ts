@@ -51,11 +51,13 @@ export function buildFrameworkInstruction(framework: FrameworkMode): string {
 
 export function buildAdaptSystemPrompt(framework?: FrameworkMode): string {
   const reactInstruction = framework ? buildFrameworkInstruction(framework) : '';
-  const frontendAuthenticity = framework
-    ? `   - SPECIFIC PROHIBITIONS: Do NOT add "Electron", "Backend", "Node.js", "Java", or "Python" unless they are explicitly in the base CV text.
-   - EXCEPTION: You MAY add "React" or "React.js" if the candidate has strong Vue.js experience, but frame it as "Adaptable to React due to strong Vue expertise".
-`
+  const specificProhibitions = framework
+    ? `   - SPECIFIC PROHIBITIONS: Do NOT add "Electron", "Backend", "Node.js", "Java", or "Python" unless they are explicitly in the base CV text.\n`
     : '';
+  const reactException =
+    framework && framework !== 'vue'
+      ? `   - EXCEPTION: You MAY add "React" or "React.js" if the candidate has strong Vue.js experience, but frame it as "Adaptable to React due to strong Vue expertise".\n`
+      : '';
   const lengthFocus = framework
     ? 'years of experience, primary framework, and key soft/hard skill match'
     : 'years of experience and key skill match with the offer';
@@ -98,7 +100,7 @@ CRITICAL RULES:
 ${reactInstruction}
 6. AUTHENTICITY & TRUTH (CRITICAL):
    - STRICTLY FORBIDDEN to add skills, tools, or experience NOT present in the original CV.
-${frontendAuthenticity}   - If the job requires a skill that is NOT in the base CV, DO NOT include it.
+${specificProhibitions}${reactException}   - If the job requires a skill that is NOT in the base CV, DO NOT include it.
    - Only reframe and emphasize experience that ACTUALLY EXISTS in the base CV.
    - It is better to omit a requirement than to lie about having it.
 

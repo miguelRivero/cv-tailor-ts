@@ -31,6 +31,13 @@ describe('buildAdaptSystemPrompt', () => {
     expect(prompt).toContain('primary and most extensive experience is with Vue');
   });
 
+  it('does not allow adding React when the mode is vue', () => {
+    const prompt = buildAdaptSystemPrompt('vue');
+    expect(prompt).toContain('Do NOT mention React at all');
+    expect(prompt).not.toContain('You MAY add "React"');
+    expect(prompt).toContain('Do NOT add "Electron"');
+  });
+
   it('does not inject frontend framing when framework is omitted', () => {
     const prompt = buildAdaptSystemPrompt();
     expect(prompt).not.toContain('FRAMEWORK EMPHASIS');
