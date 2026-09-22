@@ -67,7 +67,7 @@ function App() {
         BASE_CV_OPTIONS[0].html);
 
   const generateOptions: GenerateOptions = {
-    framework,
+    framework: baseCvChoice === 'default' ? framework : undefined,
     baseHtml: activeBaseHtml,
     candidateName: DEFAULT_CORE_CONFIG.candidateName,
     model: advanced.model,

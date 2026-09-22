@@ -34,7 +34,7 @@ export async function adaptHTML(
   });
 
   const systemPrompt = buildAdaptSystemPrompt(framework);
-  const userMessage = buildAdaptUserMessage(baseHtml, keywords, jobTitle);
+  const userMessage = buildAdaptUserMessage(baseHtml, keywords, jobTitle, framework);
 
   try {
     const completion = await client.chat.completions.create({

@@ -34,7 +34,6 @@ export function OptionsCard({
         <CardTitle>Options</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <FrameworkSelector value={framework} onChange={onFrameworkChange} disabled={disabled} />
         <BaseCvSelector
           choice={baseCvChoice}
           customFileName={baseCvFileName}
@@ -42,6 +41,9 @@ export function OptionsCard({
           onUpload={onUploadBaseCv}
           disabled={disabled}
         />
+        {baseCvChoice === 'default' && (
+          <FrameworkSelector value={framework} onChange={onFrameworkChange} disabled={disabled} />
+        )}
         <Separator />
         <AdvancedOptions value={advanced} onChange={onAdvancedChange} disabled={disabled} />
       </CardContent>

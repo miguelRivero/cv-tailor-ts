@@ -16,6 +16,13 @@ describe('CV Structure Validation', () => {
     expect(() => validateBaseCvStructure(html)).not.toThrow();
   });
 
+  it('keeps the blank template as a layout skeleton, not a copy of the default CV', async () => {
+    const html = await fs.readFile('original/cv_template.html', 'utf-8');
+    expect(() => validateBaseCvStructure(html)).not.toThrow();
+    expect(html).not.toContain('Miguel Rivero');
+    expect(html).not.toMatch(/Vue\s*3/i);
+  });
+
   it('rejects deprecated cv-container layout', () => {
     const html = `
       <html><head><link rel="stylesheet" href="shared.css"></head>

@@ -11,7 +11,7 @@ import {
   normalizeJobTitle,
 } from '../../../src/core/prompts/extractTitle.js';
 import {
-  KEYWORDS_SYSTEM_PROMPT,
+  buildKeywordsSystemPrompt,
   buildKeywordsUserMessage,
 } from '../../../src/core/prompts/extractKeywords.js';
 import {
@@ -92,9 +92,9 @@ function validateRequest(
     return { error: 'baseHtml is required.' };
   }
 
-  const framework: FrameworkMode = isFrameworkMode(candidate.framework)
+  const framework: FrameworkMode | undefined = isFrameworkMode(candidate.framework)
     ? candidate.framework
-    : 'agnostic';
+    : undefined;
 
   return {
     request: {
@@ -205,7 +205,7 @@ export async function handleTailor(
         model,
         temperature,
         messages: [
-          { role: 'system', content: KEYWORDS_SYSTEM_PROMPT },
+          { role: 'system', content: buildKeywordsSystemPrompt(tailorRequest.framework) },
           { role: 'user', content: buildKeywordsUserMessage(tailorRequest.offerText) },
         ],
         jsonObject: true,
@@ -224,7 +224,12 @@ export async function handleTailor(
             { role: 'system', content: buildAdaptSystemPrompt(tailorRequest.framework) },
             {
               role: 'user',
-              content: buildAdaptUserMessage(tailorRequest.baseHtml, keywords, jobTitle),
+              content: buildAdaptUserMessage(
+                tailorRequest.baseHtml,
+                keywords,
+                jobTitle,
+                tailorRequest.framework
+              ),
             },
             { role: 'system', content: 'Remember to return ONLY valid JSON.' },
           ],

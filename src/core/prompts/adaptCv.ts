@@ -49,8 +49,16 @@ export function buildFrameworkInstruction(framework: FrameworkMode): string {
   }
 }
 
-export function buildAdaptSystemPrompt(framework: FrameworkMode): string {
-  const reactInstruction = buildFrameworkInstruction(framework);
+export function buildAdaptSystemPrompt(framework?: FrameworkMode): string {
+  const reactInstruction = framework ? buildFrameworkInstruction(framework) : '';
+  const frontendAuthenticity = framework
+    ? `   - SPECIFIC PROHIBITIONS: Do NOT add "Electron", "Backend", "Node.js", "Java", or "Python" unless they are explicitly in the base CV text.
+   - EXCEPTION: You MAY add "React" or "React.js" if the candidate has strong Vue.js experience, but frame it as "Adaptable to React due to strong Vue expertise".
+`
+    : '';
+  const lengthFocus = framework
+    ? 'years of experience, primary framework, and key soft/hard skill match'
+    : 'years of experience and key skill match with the offer';
 
   return `You are an expert CV rewriter specialized in tailoring resumes for specific job opportunities.
 
@@ -89,9 +97,7 @@ CRITICAL RULES:
 ${reactInstruction}
 6. AUTHENTICITY & TRUTH (CRITICAL):
    - STRICTLY FORBIDDEN to add skills, tools, or experience NOT present in the original CV.
-   - SPECIFIC PROHIBITIONS: Do NOT add "Electron", "Backend", "Node.js", "Java", or "Python" unless they are explicitly in the base CV text.
-   - EXCEPTION: You MAY add "React" or "React.js" if the candidate has strong Vue.js experience, but frame it as "Adaptable to React due to strong Vue expertise".
-   - If the job requires a skill that is NOT in the base CV, DO NOT include it.
+${frontendAuthenticity}   - If the job requires a skill that is NOT in the base CV, DO NOT include it.
    - Only reframe and emphasize experience that ACTUALLY EXISTS in the base CV.
    - It is better to omit a requirement than to lie about having it.
 
@@ -112,7 +118,7 @@ ${reactInstruction}
 10. LENGTH & FORMATTING CONSTRAINTS (CRITICAL):
     - PROFESSIONAL SUMMARY: Optimal length 6-7 lines to fill A4 page (approx 80-100 words).
     - Avoid redundancy: Do not repeat lists of skills in the summary that are already in Core Competencies.
-    - Focus on years of experience, primary framework, and key soft/hard skill match.
+    - Focus on ${lengthFocus}.
     - The output must fit ideally on a single A4 page, so be efficient with words.
 
 Rewrite the CV to align with these extracted keywords while following ALL rules above.
@@ -122,9 +128,11 @@ Rewrite the CV to align with these extracted keywords while following ALL rules 
 export function buildAdaptUserMessage(
   baseHtml: string,
   keywords: Keywords,
-  jobTitle: string = ''
+  jobTitle: string = '',
+  framework?: FrameworkMode
 ): string {
   const keywordsJson = JSON.stringify(keywords, null, 2);
+  const frameworkHint = framework ? '- Handle framework mismatches elegantly\n' : '';
 
   return `Adapt this CV for a job opportunity with these requirements:
 
@@ -141,8 +149,7 @@ Remember:
 - Keep original company names from base CV (past employers)
 - DO NOT mention the target company name
 - Integrate keywords naturally
-- Handle framework mismatches elegantly
-- No AI traces
+${frameworkHint}- No AI traces
 - Return JSON with "html" and "summary" fields
 `;
 }

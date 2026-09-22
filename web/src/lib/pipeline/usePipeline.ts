@@ -25,7 +25,7 @@ import type { ApiError } from '@core/types/api';
 import { fetchOffer as requestOffer, tailorStream, WorkerHttpError } from '@/lib/api/client';
 
 export interface GenerateOptions {
-  framework: FrameworkMode;
+  framework?: FrameworkMode;
   baseHtml: string;
   candidateName: string;
   model: string;

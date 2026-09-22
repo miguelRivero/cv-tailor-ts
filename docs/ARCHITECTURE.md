@@ -213,7 +213,15 @@ npm start -- [--text TEXT | --file FILE | --url URL]
 ```
 
 `--text`, `--file`, and `--url` are mutually exclusive. `--framework` selects the
-framework-emphasis mode used when adapting the CV (default: `agnostic`).
+framework-emphasis mode used when adapting the CV (default: `agnostic`, which
+still stresses general frontend framework experience).
+
+The web app (`web/`, see [WEB.md](WEB.md)) only sends `framework` when the
+selected base CV is the default HTML. Blank template and an uploaded HTML file
+omit it. `TailorRequest.framework` is optional; the worker must not treat a
+missing value as `agnostic`. Omitted means the career-neutral prompts: no
+framework-emphasis block, no Vue-to-React exception, and keyword extraction
+leaves `synonyms.Vue_to_React` empty.
 
 **Workflow**:
 

@@ -66,7 +66,11 @@ export type FetchOfferResponse = FetchOfferSuccess | FetchOfferFailure;
 export interface TailorRequest {
   offerText: string;
   baseHtml: string;
-  framework: FrameworkMode;
+  /**
+   * Present only for Miguel's default CV. Omitted (or not a known mode)
+   * means career-neutral adaptation: no Vue/React/frontend emphasis.
+   */
+  framework?: FrameworkMode;
   /** Advisory only - the worker allowlists models and clamps this. */
   model?: string;
   temperature?: number;
