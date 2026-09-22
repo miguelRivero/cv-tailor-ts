@@ -30,7 +30,7 @@ cp web/.env.example web/.env.local             # VITE_CLIENT_TOKEN must match .d
 npm run dev:web
 ```
 
-Vite binds `127.0.0.1` on port **5180** (`strictPort`). Open
+Vite listens on `127.0.0.1` and `::1`, port **5180** (`strictPort`). Open
 **http://127.0.0.1:5180/cv-tailor-ts/** — the `/cv-tailor-ts/` prefix is
 required. `http://127.0.0.1:5180/` alone is not the app.
 
