@@ -59,6 +59,7 @@ export function buildAdaptSystemPrompt(framework?: FrameworkMode): string {
   const lengthFocus = framework
     ? 'years of experience, primary framework, and key soft/hard skill match'
     : 'years of experience and key skill match with the offer';
+  const companyExample = framework ? ' (e.g. Nespresso)' : '';
 
   return `You are an expert CV rewriter specialized in tailoring resumes for specific job opportunities.
 
@@ -81,7 +82,7 @@ CRITICAL RULES:
    - ONLY rewrite text content inside existing HTML tags
 
 3. COMPANY NAMES (PRESERVE):
-   - Keep original company names from the base CV (e.g. Nespresso).
+   - Keep original company names from the base CV${companyExample}.
    - Do NOT anonymize or change references to past employers.
 
 4. KEYWORD INTEGRATION:

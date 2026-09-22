@@ -37,7 +37,12 @@ describe('buildAdaptSystemPrompt', () => {
     expect(prompt).not.toContain('frontend frameworks');
     expect(prompt).not.toContain('You MAY add "React" or "React.js"');
     expect(prompt).not.toContain('Do NOT add "Electron"');
+    expect(prompt).not.toContain('Nespresso');
     expect(prompt).toContain('STRICTLY FORBIDDEN to add skills');
+  });
+
+  it('keeps the default-CV employer example when a framework mode is set', () => {
+    expect(buildAdaptSystemPrompt('agnostic')).toContain('Nespresso');
   });
 });
 
