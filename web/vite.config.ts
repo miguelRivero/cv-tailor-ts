@@ -45,6 +45,12 @@ export default defineConfig({
   },
 
   server: {
+    // Bind IPv4 as well as IPv6. On Windows, `localhost` often resolves
+    // to 127.0.0.1 first; Vite's default host only listened on ::1, so
+    // the browser reported that it could not connect.
+    host: '127.0.0.1',
+    port: 5180,
+    strictPort: true,
     // @core and @assets resolve outside Vite's project root (this
     // directory); without this, Vite's dev server refuses to serve
     // files it considers outside the project for security reasons.

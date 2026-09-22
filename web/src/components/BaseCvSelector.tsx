@@ -71,8 +71,16 @@ export function BaseCvSelector({
           }}
         />
       </div>
+      {choice === 'blank' && (
+        <p className="text-muted-foreground text-xs">
+          Empty layout skeleton. Frontend framing is off — fill in the placeholders or upload your
+          own HTML.
+        </p>
+      )}
       {choice === 'custom' && customFileName && (
-        <p className="text-muted-foreground text-xs">Using uploaded file: {customFileName}</p>
+        <p className="text-muted-foreground text-xs">
+          Using uploaded file: {customFileName}. Frontend framing is off.
+        </p>
       )}
     </div>
   );

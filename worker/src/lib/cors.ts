@@ -10,8 +10,8 @@
  */
 const ALLOWED_ORIGINS = new Set([
   'https://miguelrivero.github.io',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
+  'http://localhost:5180',
+  'http://127.0.0.1:5180',
 ]);
 
 /** Returns the request's Origin header if (and only if) it's allowed. */

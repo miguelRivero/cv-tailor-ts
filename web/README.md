@@ -13,9 +13,17 @@ Nova preset — Lucide icons, Geist font).
 npm run dev:web     # from the repo root - starts the Vite dev server
 ```
 
+Open **http://127.0.0.1:5180/cv-tailor-ts/**. Vite binds `127.0.0.1` on port 5180 and will not
+fall back to another port. The `/cv-tailor-ts/` path is required.
+
 or from inside this directory: `npm run dev`. The dev server proxies `/api/*` requests to a worker
 running locally on `http://127.0.0.1:8787` (see [`../worker/README.md`](../worker/README.md)), so
 there's no CORS to think about in development.
+
+Frontend framing (React / Vue / Agnostic) is shown only for the default base CV. Blank template
+and an uploaded HTML file hide it and omit `framework`, so adaptation stays career-neutral. The
+blank file is [`../original/cv_template.html`](../original/cv_template.html). Upload is HTML in
+that layout, not PDF.
 
 ## Shared code
 
@@ -41,4 +49,6 @@ this repo's style to them would just be undone on the next update.
 
 ## Deployment
 
-Not yet wired up — see the repo's plan for the GitHub Pages Actions workflow.
+GitHub Pages and the worker deploy from `main`. Setup and the CORS allowlist
+(`http://127.0.0.1:5180` and `http://localhost:5180` for local Vite) are in
+[`../docs/WEB.md`](../docs/WEB.md).

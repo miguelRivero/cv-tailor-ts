@@ -22,8 +22,8 @@ The base CV must use the `.content` paragraph layout styled by `shared.css`. Use
 
 ```
 original/
-├── MR_cv_base.html    # Primary CV (default in config.yaml)
-├── cv_template.html   # Reference layout
+├── MR_cv_base.html    # Primary CV (default in config.yaml and in the web app)
+├── cv_template.html   # Empty layout skeleton (web "Blank template")
 └── shared.css         # Stylesheet (copied to output on each run)
 ```
 
@@ -94,6 +94,18 @@ npm start -- --file offers/job.txt --framework vue
 # Framework-agnostic: stress general frontend framework experience
 npm start -- --file offers/job.txt --framework agnostic
 ```
+
+The CLI always passes one of these modes. Omitting `--framework` is the same as `agnostic`.
+
+### Web app
+
+```bash
+npm run dev:web
+```
+
+Open http://127.0.0.1:5180/cv-tailor-ts/.
+
+The React / Vue / Agnostic control appears only for the default CV (`original/MR_cv_base.html`). Choosing **Blank template** or uploading another HTML file hides it. That request omits `framework`. Keyword extraction then leaves `synonyms.Vue_to_React` empty, and adaptation does not add frontend framing or invent tools that are not in the uploaded HTML. The blank file is `original/cv_template.html` (placeholders such as "Your Name", not a copy of the default CV). Upload is HTML in this layout only.
 
 ### Custom Output Directory
 

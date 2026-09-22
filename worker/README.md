@@ -24,7 +24,9 @@ test against it, only to actually deploy (see `docs/WEB.md`, added once the depl
    one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
 2. From the repo root: `npm run dev:worker` (or `npm run dev` from inside `worker/`). This starts a
    local server on `http://127.0.0.1:8787`, which the web app's Vite dev server proxies `/api/*`
-   requests to.
+   requests to. Vite itself is on `http://127.0.0.1:5180`. Direct browser calls to this worker
+   (not via the proxy) are allowed from `http://127.0.0.1:5180` and `http://localhost:5180`.
+   `POST /api/tailor` may omit `framework`; that is the career-neutral prompt path, not `agnostic`.
 3. Smoke-test it directly with curl, e.g.:
    ```
    curl http://127.0.0.1:8787/api/health
