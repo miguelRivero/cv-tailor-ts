@@ -67,8 +67,9 @@ export interface TailorRequest {
   offerText: string;
   baseHtml: string;
   /**
-   * Present only for Miguel's default CV. Omitted (or not a known mode)
-   * means career-neutral adaptation: no Vue/React/frontend emphasis.
+   * Present only for Miguel's default CV. Omitted means career-neutral
+   * adaptation: no Vue/React/frontend emphasis. A value that is not
+   * react, vue, or agnostic is rejected.
    */
   framework?: FrameworkMode;
   /** Advisory only - the worker allowlists models and clamps this. */
