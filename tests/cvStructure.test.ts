@@ -3,11 +3,13 @@
  */
 
 import fs from 'fs/promises';
+import { buildDownloadFiles } from '../src/core/preview/download';
 import {
   validateBaseCvStructure,
   normalizeOutputHtml,
   updateJobTitleInHtml,
   inlineStylesheet,
+  resolveRunCandidateName,
 } from '../src/core/html/cvStructure';
 
 describe('CV Structure Validation', () => {
@@ -50,6 +52,43 @@ describe('CV Structure Validation', () => {
     const normalized = normalizeOutputHtml(html);
 
     expect(normalized).toContain('href="shared.css"');
+  });
+
+  it('uses the uploaded CV header for the title and filename, not the default candidate', () => {
+    const html = `<html><head><title>Old</title>
+      <link rel="stylesheet" href="shared.css"></head>
+      <body><div class="content"><p>Ada Lovelace</p><p>Engineer</p></div></body></html>`;
+
+    const name = resolveRunCandidateName({
+      useConfiguredName: false,
+      configuredName: 'Miguel Rivero López',
+      baseHtml: html,
+    });
+    const updated = updateJobTitleInHtml(html, 'Platform Engineer', name);
+    const [file] = buildDownloadFiles({
+      html: updated,
+      css: '',
+      jobTitle: 'platform-engineer',
+      candidateName: name,
+      inlineCss: true,
+    });
+
+    expect(name).toBe('Ada Lovelace');
+    expect(updated).toContain('<title>Ada Lovelace - Platform Engineer</title>');
+    expect(file.filename).toBe('Ada-Lovelace-platform-engineer.html');
+  });
+
+  it('keeps the configured name for the default CV', () => {
+    const html = `<html><head><title>Old</title></head>
+      <body><div class="content"><p>Your Name</p><p>Job Title</p></div></body></html>`;
+
+    expect(
+      resolveRunCandidateName({
+        useConfiguredName: true,
+        configuredName: 'Miguel Rivero López',
+        baseHtml: html,
+      })
+    ).toBe('Miguel Rivero López');
   });
 
   it('updates only the header job title paragraph', async () => {
