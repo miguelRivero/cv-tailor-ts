@@ -25,6 +25,13 @@ describe('CV Structure Validation', () => {
     expect(html).not.toMatch(/Vue\s*3/i);
   });
 
+  it('does not tell the model to invent content in the blank template', async () => {
+    const html = await fs.readFile('original/cv_template.html', 'utf-8');
+    expect(html).not.toMatch(/the tailor/i);
+    expect(html).not.toMatch(/replace this/i);
+    expect(html).not.toMatch(/real achievement/i);
+  });
+
   it('rejects deprecated cv-container layout', () => {
     const html = `
       <html><head><link rel="stylesheet" href="shared.css"></head>
