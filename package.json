@@ -25,7 +25,8 @@
     "build:web": "npm run typecheck:web && npm run -w web build",
     "dev:web": "npm run -w web dev",
     "validate": "npm run build && npm run lint && npm run format:check && npm test && npm run typecheck:worker && npm run build:web",
-    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prepare": "husky"
   },
   "keywords": [
     "cv",
@@ -59,7 +60,9 @@
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.26",
+    "husky": "9.1.7",
     "jest": "^29.7.0",
+    "lint-staged": "16.4.0",
     "prettier": "^3.4.2",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
@@ -67,5 +70,8 @@
   },
   "engines": {
     "node": ">=20.19.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md,yaml,yml}": "prettier --write"
   }
 }
