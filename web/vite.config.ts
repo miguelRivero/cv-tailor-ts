@@ -65,9 +65,9 @@ export default defineConfig({
       // prompts, the Keywords type, cvStructure helpers, the watermark
       // filter, filename helpers, the pipeline reducer.
       '@core': path.resolve(import.meta.dirname, '../src/core'),
-      // original/MR_cv_base.html and shared.css. Only ever import
-      // shared.css from here with Vite's `?raw` suffix - see
-      // web/src/assets/baseCvs.ts once it exists - it contains a bare
+      // original/cv_template.html and shared.css. The personal CV is not
+      // imported into this app. Only ever import shared.css from here
+      // with Vite's `?raw` suffix - see web/src/assets/baseCvs.ts - it contains a bare
       // `* { margin: 0 }` and a body background that would wreck this
       // app's own styling if imported normally.
       '@assets': path.resolve(import.meta.dirname, '../original'),

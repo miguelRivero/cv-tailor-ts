@@ -83,6 +83,12 @@ CRITICAL RULES:
    - Do NOT alter CSS classes or styling
    - ONLY rewrite text content inside existing HTML tags
 
+2a. SECTION HEADING TAGS (MANDATORY):
+   - Every section heading (PROFESSIONAL SUMMARY, CORE COMPETENCIES, PROFESSIONAL EXPERIENCE, LANGUAGES, etc.) MUST be wrapped in <section class="title">HEADING TEXT</section>.
+   - This is the ONLY correct tag for section headings. Never use <p>, <h1>, <h2>, <strong>, <b>, or any other tag for a section heading.
+   - If the base CV uses a <p> tag for a section heading, CORRECT it to <section class="title"> in your output.
+   - The bold styling of section headings comes from shared.css via the .title class. Do NOT add inline styles or <strong>/<b> tags inside a <section class="title">.
+
 3. COMPANY NAMES (PRESERVE):
    - Keep original company names from the base CV${companyExample}.
    - Do NOT anonymize or change references to past employers.

@@ -14,6 +14,8 @@ export * from './prompts/adaptCv.js';
 export * from './prompts/extractKeywords.js';
 export * from './prompts/extractTitle.js';
 export * from './html/cvStructure.js';
+export * from './html/pdfText.js';
+export * from './savedBaseCv.js';
 export * from './filters/watermarkFilter.js';
 export * from './naming/filenames.js';
 export * from './pipeline/postProcess.js';

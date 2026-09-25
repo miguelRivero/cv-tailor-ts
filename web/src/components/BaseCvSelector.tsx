@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Upload } from 'lucide-react';
-import { BASE_CV_OPTIONS } from '@/assets/baseCvs';
+import type { WebBaseCvChoice } from '@core/savedBaseCv';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,21 +11,27 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-export type BaseCvChoice = 'default' | 'blank' | 'custom';
+export type { WebBaseCvChoice };
 
 interface BaseCvSelectorProps {
-  choice: BaseCvChoice;
+  choice: WebBaseCvChoice;
+  savedFileName?: string;
   customFileName?: string;
-  onSelectPreset: (id: 'default' | 'blank') => void;
+  onSelectPreset: (id: 'saved' | 'blank') => void;
   onUpload: (file: File) => void;
+  onReplaceSaved: () => void;
+  onForgetSaved: () => void;
   disabled?: boolean;
 }
 
 export function BaseCvSelector({
   choice,
+  savedFileName,
   customFileName,
   onSelectPreset,
   onUpload,
+  onReplaceSaved,
+  onForgetSaved,
   disabled,
 }: BaseCvSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,18 +42,20 @@ export function BaseCvSelector({
       <div className="flex gap-2">
         <Select
           value={choice === 'custom' ? '' : choice}
-          disabled={disabled}
-          onValueChange={(value) => onSelectPreset(value as 'default' | 'blank')}
+          disabled={disabled || !savedFileName}
+          onValueChange={(value) => onSelectPreset(value as 'saved' | 'blank')}
         >
-          <SelectTrigger id="base-cv" className="flex-1">
+          <SelectTrigger
+            id="base-cv"
+            className="w-full min-w-0 flex-1 [&>[data-slot=select-value]]:truncate"
+          >
             <SelectValue placeholder={customFileName ?? 'Choose a base CV'} />
           </SelectTrigger>
           <SelectContent>
-            {BASE_CV_OPTIONS.map((option) => (
-              <SelectItem key={option.id} value={option.id}>
-                {option.label}
-              </SelectItem>
-            ))}
+            {savedFileName && (
+              <SelectItem value="saved">Saved on this browser ({savedFileName})</SelectItem>
+            )}
+            <SelectItem value="blank">Blank template</SelectItem>
           </SelectContent>
         </Select>
         <Button
@@ -62,7 +70,7 @@ export function BaseCvSelector({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".html,text/html"
+          accept=".html,.pdf,text/html,application/pdf"
           className="hidden"
           onChange={(event) => {
             const file = event.target.files?.[0];
@@ -73,14 +81,42 @@ export function BaseCvSelector({
       </div>
       {choice === 'blank' && (
         <p className="text-muted-foreground text-xs">
-          Empty layout skeleton. Frontend framing is off — fill in the placeholders or upload your
-          own HTML.
+          Empty layout skeleton. Frontend framing is off. Upload HTML or a PDF to use your own CV.
+        </p>
+      )}
+      {choice === 'saved' && savedFileName && (
+        <p className="text-muted-foreground text-xs">
+          Saved on this browser as {savedFileName}. Another browser needs its own upload.
         </p>
       )}
       {choice === 'custom' && customFileName && (
         <p className="text-muted-foreground text-xs">
-          Using uploaded file: {customFileName}. Frontend framing is off.
+          Using {customFileName} for this session. Frontend framing is off.
         </p>
+      )}
+      {savedFileName && (
+        <div className="flex gap-2">
+          {choice === 'custom' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              onClick={onReplaceSaved}
+            >
+              Replace saved CV
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled}
+            onClick={onForgetSaved}
+          >
+            Forget saved CV
+          </Button>
+        </div>
       )}
     </div>
   );

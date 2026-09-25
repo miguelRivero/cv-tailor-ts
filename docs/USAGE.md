@@ -105,7 +105,7 @@ npm run dev:web
 
 Open http://127.0.0.1:5180/cv-tailor-ts/.
 
-The React / Vue / Agnostic control appears only for the default CV (`original/MR_cv_base.html`). Choosing **Blank template** or uploading another HTML file hides it. That request omits `framework`. Keyword extraction then leaves `synonyms.Vue_to_React` empty, and adaptation does not add frontend framing or invent tools that are not in the uploaded HTML. The blank file is `original/cv_template.html` (placeholders such as "Your Name", not a copy of the default CV). Upload is HTML in this layout only.
+The web app starts on the blank template (`original/cv_template.html`). It does not ship `original/MR_cv_base.html`. Upload accepts HTML in the `.content` layout, or a PDF whose text is wrapped into that layout in the browser. The first upload on a browser is saved there and preselected next time. A later upload stays on the session until **Replace saved CV**. React / Vue / Agnostic appears only after **Frontend framing** is turned on for that saved CV. Otherwise the request omits `framework`. Keyword extraction then leaves `synonyms.Vue_to_React` empty, and adaptation does not add frontend framing or invent tools that are not in the uploaded file. The CLI still defaults to `original/MR_cv_base.html`.
 
 ### Custom Output Directory
 
