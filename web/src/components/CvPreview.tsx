@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, ExternalLink, Printer } from 'lucide-react';
+import { ChevronDown, Download, ExternalLink } from 'lucide-react';
 import { inlineStylesheet } from '@core/html/cvStructure';
 import { buildDownloadFiles } from '@core/preview/download';
 import { A4_HEIGHT_PX, A4_WIDTH_PX, CV_IFRAME_SANDBOX, countA4Pages } from '@core/preview/frame';
@@ -23,7 +23,7 @@ interface CvPreviewProps {
   inlineCssOnDownload: boolean;
 }
 
-export function CvPreview({ html, jobTitle, candidateName, inlineCssOnDownload }: CvPreviewProps) {
+export function CvPreview({ html, jobTitle, candidateName }: CvPreviewProps) {
   const srcDoc = useMemo(() => inlineStylesheet(html, sharedCss), [html]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,27 +99,22 @@ export function CvPreview({ html, jobTitle, candidateName, inlineCssOnDownload }
             Open in new tab
           </Button>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="sm" variant="outline" onClick={() => printHtmlDocument(srcDoc)}>
-                <Printer />
-                Print / PDF
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              In the print dialog, choose Save as PDF and set margins to None.
-            </TooltipContent>
-          </Tooltip>
-
           <div className="flex">
-            <Button
-              size="sm"
-              className="rounded-r-none"
-              onClick={() => download(inlineCssOnDownload)}
-            >
-              <Download />
-              Download
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="rounded-r-none"
+                  onClick={() => printHtmlDocument(srcDoc)}
+                >
+                  <Download />
+                  Download PDF
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Opens the print dialog. Choose &ldquo;Save as PDF&rdquo; and set margins to None.
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -133,6 +128,9 @@ export function CvPreview({ html, jobTitle, candidateName, inlineCssOnDownload }
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => download(false)}>
                   HTML + shared.css
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => download(true)}>
+                  HTML (CSS inlined)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
