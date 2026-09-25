@@ -20,6 +20,7 @@ import { loadBaseCV, saveAdaptedCV, fileExists } from './node/utils/fileUtils.js
 import { validateNoWatermarks } from './core/filters/watermarkFilter.js';
 import { generateOutputFilename, slugifyCandidate } from './core/naming/filenames.js';
 import { validateBaseCvStructure, inlineStylesheet } from './core/html/cvStructure.js';
+import { pdfTextToBaseHtml } from './core/html/pdfText.js';
 import { stageRemoveWatermarks, rewriteTitleAndNormalize } from './core/pipeline/postProcess.js';
 
 interface CliOptions {
@@ -156,34 +157,8 @@ async function main() {
         throw new Error(`PDF CV not found: ${options.pdfInput}`);
       }
 
-      // Parse PDF to text
       const pdfText = await parsePdfCV(options.pdfInput);
-
-      // For PDF input, we need to wrap the text in a basic HTML structure
-      // This is a simplified approach - in production, you might want more sophisticated handling
-      baseHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="shared.css">
-</head>
-<body>
-    <div class="content">
-        ${pdfText
-          .split('\n')
-          .map((line) => `<p>${line}</p>`)
-          .join('\n')}
-    </div>
-</body>
-</html>
-`;
-      validateBaseCvStructure(baseHtml);
+      baseHtml = pdfTextToBaseHtml(pdfText);
     } else {
       baseHtml = await loadBaseCV(options.base);
       validateBaseCvStructure(baseHtml);

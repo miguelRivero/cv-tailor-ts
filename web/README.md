@@ -21,10 +21,12 @@ or from inside this directory: `npm run dev`. The dev server proxies `/api/*` re
 running locally on `http://127.0.0.1:8787` (see [`../worker/README.md`](../worker/README.md)), so
 there's no CORS to think about in development.
 
-Frontend framing (React / Vue / Agnostic) is shown only for the default base CV. Blank template
-and an uploaded HTML file hide it and omit `framework`, so adaptation stays career-neutral. The
-blank file is [`../original/cv_template.html`](../original/cv_template.html). Upload is HTML in
-that layout, not PDF.
+The public page starts on the blank template,
+[`../original/cv_template.html`](../original/cv_template.html). It does not ship a personal CV.
+Upload accepts HTML in that layout, or a PDF. PDF text is wrapped into the same layout in the
+browser. The first upload on a browser is saved in that browser and selected on later visits. A
+later upload stays on the session until **Replace saved CV**. React / Vue / Agnostic appears only
+after **Frontend framing** is turned on for the saved CV. Otherwise Generate omits `framework`.
 
 ## Shared code
 

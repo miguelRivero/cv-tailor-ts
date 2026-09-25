@@ -43,14 +43,21 @@ example worker file.
 
 ### Base CV and frontend framing
 
-React / Vue / Agnostic is shown only for **Default CV (Miguel Rivero López)**.
-**Blank template** and an uploaded HTML file hide that control. Generate then
-omits `framework`, and the worker uses the career-neutral prompts instead of
-falling back to `agnostic` (which still talks about frontend frameworks).
+The page starts on **Blank template** (`original/cv_template.html`). The personal
+CV file is not part of the Pages bundle. Upload accepts `.html` in that layout,
+or a `.pdf`. PDF text is extracted in the browser and wrapped into the same
+`.content` HTML. The PDF bytes are not sent to the worker.
 
-The blank template is `original/cv_template.html`: the same `.content` layout
-with placeholder text, not a second copy of the default CV. Upload accepts
-`.html` in that layout. A PDF is not a base CV in the web app.
+The first upload in a browser is stored in that browser's `localStorage` and
+selected on the next visit. Each browser keeps its own file. A later upload is
+for the session until **Replace saved CV**. **Forget saved CV** deletes the
+record in this browser only.
+
+**Frontend framing** stays off until the visitor turns it on for their saved CV.
+Generate then sends React / Vue / Agnostic. The blank template, a session
+upload, and a saved CV with framing off omit `framework`, so the worker uses
+the career-neutral prompts instead of falling back to `agnostic` (which still
+talks about frontend frameworks).
 
 ## One-time manual setup
 
