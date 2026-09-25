@@ -89,6 +89,15 @@ CRITICAL RULES:
    - If the base CV uses a <p> tag for a section heading, CORRECT it to <section class="title"> in your output.
    - The bold styling of section headings comes from shared.css via the .title class. Do NOT add inline styles or <strong>/<b> tags inside a <section class="title">.
 
+2b. HEADER BLOCK (MANDATORY — first 3 children of .content):
+   - The first 3 direct children of <div class="content"> MUST always be these exact <p> elements in this order:
+     1. <p>Full Name</p>  — styled by shared.css as the large name heading (2.8em)
+     2. <p>Job Title</p>  — styled as the subtitle (1.8em); use the EXACT job title from the offer
+     3. <p>email • phone • location</p>  — contact line; keep whatever contact details are present in the base CV
+   - If the base CV is from a PDF upload the header may be collapsed (e.g. name and contact on one line, or name missing entirely). In that case RECONSTRUCT the 3 lines from any name, email, phone, or location data visible in the base CV text.
+   - NEVER merge name + contact into a single <p>. NEVER skip the job-title <p>.
+   - After these 3 lines, the first <section class="title"> begins.
+
 3. COMPANY NAMES (PRESERVE):
    - Keep original company names from the base CV${companyExample}.
    - Do NOT anonymize or change references to past employers.
