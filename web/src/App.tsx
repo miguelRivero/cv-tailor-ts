@@ -4,13 +4,20 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { FrameworkMode } from '@core/config/types';
 import { DEFAULT_CORE_CONFIG } from '@core/config/defaults';
 import { resolveRunCandidateName } from '@core/html/cvStructure';
+import {
+  applyBaseCvUpload,
+  initialBaseCvChoice,
+  replaceSavedBaseCv,
+  resolveActiveBaseCv,
+  type SavedBaseCv,
+  type WebBaseCvChoice,
+} from '@core/savedBaseCv';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { OfferInputCard } from '@/components/OfferInputCard';
 import { OptionsCard } from '@/components/OptionsCard';
-import type { BaseCvChoice } from '@/components/BaseCvSelector';
 import type { AdvancedOptionsValue } from '@/components/AdvancedOptions';
 import { AppHeader } from '@/components/AppHeader';
 import { GenerateBar } from '@/components/GenerateBar';
@@ -18,8 +25,10 @@ import { IdleHero } from '@/components/IdleHero';
 import { PipelineProgress } from '@/components/PipelineProgress';
 import { ResultTabs } from '@/components/ResultTabs';
 import { usePipeline, type GenerateOptions } from '@/lib/pipeline/usePipeline';
-import { BASE_CV_OPTIONS } from '@/assets/baseCvs';
+import { BLANK_CV_HTML } from '@/assets/baseCvs';
 import { workerUrlMissing } from '@/lib/env';
+import { forgetSavedBaseCv, loadSavedBaseCv, persistSavedBaseCv } from '@/lib/savedBaseCv';
+import { readBaseCvFile } from '@/lib/readBaseCvFile';
 
 const DEFAULT_ADVANCED: AdvancedOptionsValue = {
   model: DEFAULT_CORE_CONFIG.model,
@@ -34,8 +43,13 @@ function App() {
   const [manualText, setManualText] = useState('');
   const [manualRevealed, setManualRevealed] = useState(false);
 
-  const [framework, setFramework] = useState<FrameworkMode>('agnostic');
-  const [baseCvChoice, setBaseCvChoice] = useState<BaseCvChoice>('default');
+  const [savedBaseCv, setSavedBaseCv] = useState<SavedBaseCv | null>(() => loadSavedBaseCv());
+  const [framework, setFramework] = useState<FrameworkMode>(
+    () => loadSavedBaseCv()?.framework ?? 'agnostic'
+  );
+  const [baseCvChoice, setBaseCvChoice] = useState<WebBaseCvChoice>(() =>
+    initialBaseCvChoice(loadSavedBaseCv())
+  );
   const [customBaseHtml, setCustomBaseHtml] = useState<string>();
   const [customFileName, setCustomFileName] = useState<string>();
   const [advanced, setAdvanced] = useState<AdvancedOptionsValue>(DEFAULT_ADVANCED);
@@ -61,21 +75,22 @@ function App() {
   const canGenerate = !isBusy && (useManualSource || offerUrl.trim().length > 0);
   const isRetry = pipelineState.status === 'failed' || Boolean(pipelineState.offerFetchError);
 
-  const activeBaseHtml =
-    baseCvChoice === 'custom' && customBaseHtml
-      ? customBaseHtml
-      : (BASE_CV_OPTIONS.find((option) => option.id === baseCvChoice)?.html ??
-        BASE_CV_OPTIONS[0].html);
+  const activeBase = resolveActiveBaseCv({
+    choice: baseCvChoice,
+    saved: savedBaseCv,
+    blankHtml: BLANK_CV_HTML,
+    customHtml: customBaseHtml,
+  });
 
   const candidateName = resolveRunCandidateName({
-    useConfiguredName: baseCvChoice === 'default',
+    useConfiguredName: activeBase.useConfiguredName,
     configuredName: DEFAULT_CORE_CONFIG.candidateName,
-    baseHtml: activeBaseHtml,
+    baseHtml: activeBase.html,
   });
 
   const generateOptions: GenerateOptions = {
-    framework: baseCvChoice === 'default' ? framework : undefined,
-    baseHtml: activeBaseHtml,
+    framework: activeBase.framework,
+    baseHtml: activeBase.html,
     candidateName,
     model: advanced.model,
     temperature: advanced.temperature,
@@ -84,6 +99,7 @@ function App() {
   };
 
   const handleGenerate = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     if (useManualSource) {
       void runGenerate(manualText.trim(), generateOptions);
     } else {
@@ -91,14 +107,75 @@ function App() {
     }
   };
 
+  const rememberSavedCv = (cv: SavedBaseCv): boolean => {
+    try {
+      persistSavedBaseCv(cv);
+      setSavedBaseCv(cv);
+      return true;
+    } catch {
+      toast.error('Could not save this CV in the browser.');
+      return false;
+    }
+  };
+
   const handleUploadBaseCv = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setCustomBaseHtml(String(reader.result));
-      setCustomFileName(file.name);
-      setBaseCvChoice('custom');
-    };
-    reader.readAsText(file);
+    void readBaseCvFile(file)
+      .then((html) => {
+        const result = applyBaseCvUpload(savedBaseCv, { html, fileName: file.name });
+        if (result.choice === 'saved' && result.saved) {
+          const stored = rememberSavedCv(result.saved);
+          setFramework(result.saved.framework);
+          if (stored) {
+            setCustomBaseHtml(undefined);
+            setCustomFileName(undefined);
+            setBaseCvChoice('saved');
+          } else {
+            setCustomBaseHtml(result.saved.html);
+            setCustomFileName(result.saved.fileName);
+            setBaseCvChoice('custom');
+          }
+          return;
+        }
+        setCustomBaseHtml(result.customHtml);
+        setCustomFileName(result.customFileName);
+        setBaseCvChoice(result.choice);
+      })
+      .catch((error: unknown) => {
+        toast.error(error instanceof Error ? error.message : 'Could not read that CV.');
+      });
+  };
+
+  const handleReplaceSavedCv = () => {
+    if (!customBaseHtml || !customFileName) return;
+    const next = replaceSavedBaseCv(savedBaseCv, {
+      html: customBaseHtml,
+      fileName: customFileName,
+    });
+    rememberSavedCv(next);
+    setFramework(next.framework);
+    setCustomBaseHtml(undefined);
+    setCustomFileName(undefined);
+    setBaseCvChoice('saved');
+  };
+
+  const handleForgetSavedCv = () => {
+    forgetSavedBaseCv();
+    setSavedBaseCv(null);
+    setCustomBaseHtml(undefined);
+    setCustomFileName(undefined);
+    setBaseCvChoice('blank');
+  };
+
+  const handleShowFrameworkChange = (show: boolean) => {
+    if (!savedBaseCv) return;
+    rememberSavedCv({ ...savedBaseCv, showFramework: show });
+  };
+
+  const handleFrameworkChange = (mode: FrameworkMode) => {
+    setFramework(mode);
+    if (savedBaseCv && baseCvChoice === 'saved') {
+      rememberSavedCv({ ...savedBaseCv, framework: mode });
+    }
   };
 
   return (
@@ -137,11 +214,16 @@ function App() {
             />
             <OptionsCard
               framework={framework}
-              onFrameworkChange={setFramework}
+              onFrameworkChange={handleFrameworkChange}
+              showFramework={Boolean(savedBaseCv?.showFramework)}
+              onShowFrameworkChange={handleShowFrameworkChange}
               baseCvChoice={baseCvChoice}
+              savedFileName={savedBaseCv?.fileName}
               baseCvFileName={customFileName}
               onSelectBaseCvPreset={(id) => setBaseCvChoice(id)}
               onUploadBaseCv={handleUploadBaseCv}
+              onReplaceSavedCv={handleReplaceSavedCv}
+              onForgetSavedCv={handleForgetSavedCv}
               advanced={advanced}
               onAdvancedChange={setAdvanced}
               disabled={isBusy}
@@ -153,29 +235,28 @@ function App() {
               onGenerate={handleGenerate}
               onCancel={cancel}
             />
+            {pipelineState.status === 'failed' && pipelineState.error && (
+              <Alert variant="destructive">
+                <AlertTriangle />
+                <AlertTitle>Generation failed</AlertTitle>
+                <AlertDescription>{pipelineState.error.message}</AlertDescription>
+                {pipelineState.error.retryable && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 w-fit"
+                    onClick={handleGenerate}
+                  >
+                    <RefreshCw />
+                    Retry
+                  </Button>
+                )}
+              </Alert>
+            )}
           </div>
 
           {pipelineState.status !== 'idle' && (
-            <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1 lg:row-span-2">
-              {pipelineState.status === 'failed' && pipelineState.error && (
-                <Alert variant="destructive">
-                  <AlertTriangle />
-                  <AlertTitle>Generation failed</AlertTitle>
-                  <AlertDescription>{pipelineState.error.message}</AlertDescription>
-                  {pipelineState.error.retryable && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-2 w-fit"
-                      onClick={handleGenerate}
-                    >
-                      <RefreshCw />
-                      Retry
-                    </Button>
-                  )}
-                </Alert>
-              )}
-
+            <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-2">
               {pipelineState.warnings.length > 0 && (
                 <Alert>
                   <AlertTriangle />

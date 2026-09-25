@@ -130,7 +130,7 @@ npm run dev:web
 
 Open **http://127.0.0.1:5180/cv-tailor-ts/** (the `/cv-tailor-ts/` path is required).
 
-React / Vue / Agnostic framing is shown only when the base CV is the default, `original/MR_cv_base.html`. The blank template and an uploaded HTML file hide that control. The request then omits `framework`, and the worker uses career-neutral prompts: it rewrites only what is already in that HTML, with no Vue-to-React framing. Upload accepts HTML in the `.content` + `shared.css` layout, not PDF. The blank template is `original/cv_template.html`. Details: [docs/WEB.md](docs/WEB.md).
+The web app starts on the blank template, `original/cv_template.html`, and does not ship a personal CV. Upload accepts HTML in the `.content` + `shared.css` layout, or a PDF. PDF text is wrapped into that layout in the browser. The first upload on a browser is saved in that browser and selected on later visits. React / Vue / Agnostic appears only after frontend framing is turned on for the saved CV. Otherwise the request omits `framework`, and the worker uses career-neutral prompts. Details: [docs/WEB.md](docs/WEB.md).
 
 ## Configuration ⚙️
 

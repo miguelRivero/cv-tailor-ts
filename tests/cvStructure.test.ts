@@ -18,6 +18,11 @@ describe('CV Structure Validation', () => {
     expect(() => validateBaseCvStructure(html)).not.toThrow();
   });
 
+  it('does not import the personal CV into the web app', async () => {
+    const source = await fs.readFile('web/src/assets/baseCvs.ts', 'utf-8');
+    expect(source).not.toContain('MR_cv_base');
+  });
+
   it('keeps the blank template as a layout skeleton, not a copy of the default CV', async () => {
     const html = await fs.readFile('original/cv_template.html', 'utf-8');
     expect(() => validateBaseCvStructure(html)).not.toThrow();

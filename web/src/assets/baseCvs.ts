@@ -1,5 +1,6 @@
 /**
- * Base CV choices offered by BaseCvSelector.
+ * The public page ships the blank template and shared.css only.
+ * A visitor's own CV stays in that browser's localStorage.
  *
  * `?raw` is Vite's built-in "give me the file's text, don't parse it"
  * import suffix (typed by the "vite/client" entry already in
@@ -10,19 +11,9 @@
  * it carries a bare `* { margin: 0 }` reset that would leak into this
  * app's own styling.
  */
-import defaultCvHtml from '@assets/MR_cv_base.html?raw';
 import blankCvHtml from '@assets/cv_template.html?raw';
 import sharedCss from '@assets/shared.css?raw';
 
-export interface BaseCvOption {
-  id: 'default' | 'blank';
-  label: string;
-  html: string;
-}
-
-export const BASE_CV_OPTIONS: BaseCvOption[] = [
-  { id: 'default', label: 'Default CV (Miguel Rivero López)', html: defaultCvHtml },
-  { id: 'blank', label: 'Blank template', html: blankCvHtml },
-];
+export const BLANK_CV_HTML = blankCvHtml;
 
 export { sharedCss };
